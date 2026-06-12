@@ -1,13 +1,25 @@
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import Header from './components/Header'
 import Card from './components/Card'
 
 function App() {
+  const [status, setStatus] = useState(null)
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/status')
+      .then(response => setStatus(response.data))
+      .catch(error => console.error(error))
+  }, [])
+
   return (
     <div>
       <Header />
-      <Card title="React" description="Frontend del universo" />
-      <Card title="Laravel" description="Backend del universo" />
-      <Card title="Docker" description="Contenedor del universo" />
+      {status ? (
+        <Card title={status.project} description={status.message} />
+      ) : (
+        <p>Conectando con el universo...</p>
+      )}
     </div>
   )
 }
