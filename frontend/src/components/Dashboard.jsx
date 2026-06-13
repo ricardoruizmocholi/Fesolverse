@@ -1,22 +1,28 @@
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import api from '../api/axios'
+import RouteGenerator from './RouteGenerator'
+import RouteCard from './RouteCard'
 
-// Dashboard
-// Qué hace: página principal tras iniciar sesión. Muestra los datos del
-// usuario autenticado (nombre, email, plan y tokens usados) y la lista de
-// rutas profesionales generadas por el usuario (de momento vacía, se
-// completará en una fase posterior del proyecto).
-// Por qué existe: es la pantalla a la que se redirige tras el login o el
-// registro, y desde donde el usuario accederá al resto de funcionalidades.
-// Recibe: nada (usa el contexto de autenticación para leer el usuario).
-// Devuelve: el bloque con la información del usuario y sus rutas generadas.
 function Dashboard() {
   const { user, logout } = useAuth()
+  const [rutas, setRutas] = useState([])
+  const [cargandoRutas, setCargandoRutas] = useState(true)
 
-  // rutasGeneradas
-  // Por qué existe: marcador de posición para las rutas profesionales que
-  // el usuario generará en una fase posterior del proyecto. De momento
-  // siempre está vacío.
-  const rutasGeneradas = []
+  const cargarRutas = useCallback(async () => {
+    try {
+      const response = await api.get('/routes')
+      setRutas(response.data.data.routes)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setCargandoRutas(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    cargarRutas()
+  }, [cargarRutas])
 
   return (
     <div>
@@ -33,16 +39,18 @@ function Dashboard() {
 
       <button onClick={logout}>Cerrar sesión</button>
 
+      <p>--- aquí va el generador ---</p>
+
+      <RouteGenerator onRutaGenerada={cargarRutas} />
+
       <section>
         <h3>Tus rutas generadas</h3>
-        {rutasGeneradas.length === 0 ? (
+        {cargandoRutas ? (
+          <p>Cargando rutas...</p>
+        ) : rutas.length === 0 ? (
           <p>Todavía no has generado ninguna ruta.</p>
         ) : (
-          <ul>
-            {rutasGeneradas.map((ruta) => (
-              <li key={ruta.id}>{ruta.titulo}</li>
-            ))}
-          </ul>
+          rutas.map((ruta) => <RouteCard key={ruta.id} route={ruta} />)
         )}
       </section>
     </div>
