@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, Routes, Route } from 'react-router-dom'
+import './App.css'
 import api from './api/axios'
 import Header from './components/Header'
 import Card from './components/Card'

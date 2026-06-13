@@ -109,3 +109,21 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ------------------------------------------------------------------ */
+/* Tema espacial (Fase 4 - visualización 3D del sistema solar)         */
+/* ------------------------------------------------------------------ */
+
+body {
+  background: #0a0a1a;
+  color: #e0f2fe;
+}
+
+#root {
+  background: #0a0a1a;
+  border-inline: 1px solid #1e293b;
+}
+
+a {
+  color: #7dd3fc;
+}
