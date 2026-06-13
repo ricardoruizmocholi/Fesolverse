@@ -1,7 +1,8 @@
-import { Component, useMemo, useRef, useState } from 'react'
+import { Component, Suspense, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Billboard, Line, OrbitControls, Stars, Text } from '@react-three/drei'
+import { Billboard, Line, OrbitControls, Stars, Text, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
+
 
 // ---------------------------------------------------------------------
 // Configuración visual del sistema solar
@@ -14,17 +15,40 @@ import * as THREE from 'three'
 const PALETA_PASOS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#06b6d4', '#ec4899']
 
 // DESTINOS_ESPACIALES
-// Por qué existe: define el color, el tamaño y si tiene anillos cada uno de
-// los posibles valores de "destino_espacial" que puede devolver la IA.
+// Por qué existe: define el color, el tamaño, si tiene anillos y la textura
+// de cada uno de los posibles valores de "destino_espacial" que puede
+// devolver la IA. El campo "textura" es la URL de la imagen del planeta
+// (Solar System Scope); si es null (como en Plutón, sin textura pública
+// conocida), CuerpoCeleste usará directamente "color", igual que antes.
 const DESTINOS_ESPACIALES = {
-  'La Luna': { color: '#9ca3af', tamano: 1.6, anillos: false },
-  'Marte': { color: '#dc2626', tamano: 1.7, anillos: false },
-  'Júpiter': { color: '#f59e0b', tamano: 2.6, anillos: false },
-  'Saturno': { color: '#facc15', tamano: 2.3, anillos: true },
-  'Urano': { color: '#22d3ee', tamano: 2.0, anillos: false },
-  'Neptuno': { color: '#1d4ed8', tamano: 2.0, anillos: false },
-  'Plutón': { color: '#6b7280', tamano: 1.3, anillos: false },
+  'La Luna': { color: '#9ca3af', tamano: 1.6, anillos: false, textura: '/textures/2k_moon.jpg' },
+  'Marte': { color: '#dc2626', tamano: 1.7, anillos: false, textura: '/textures/2k_mars.jpg' },
+  'Júpiter': { color: '#f59e0b', tamano: 2.6, anillos: false, textura: '/textures/2k_jupiter.jpg' },
+  'Saturno': { color: '#facc15', tamano: 2.3, anillos: true, textura: '/textures/2k_saturn.jpg' },
+  'Urano': { color: '#22d3ee', tamano: 2.0, anillos: false, textura: '/textures/2k_uranus.jpg' },
+  'Neptuno': { color: '#1d4ed8', tamano: 2.0, anillos: false, textura: '/textures/2k_neptune.jpg' },
+  'Plutón': { color: '#6b7280', tamano: 1.3, anillos: false, textura: '/textures/2k_moon.jpg' },
 }
+
+// TEXTURAS_PASOS
+// Por qué existe: cada planeta de un step usa una textura distinta según su
+// orden (rotando si hay más de 7 steps), igual que con PALETA_PASOS. Son
+// imágenes públicas de Solar System Scope (https://www.solarsystemscope.com/textures/).
+const TEXTURAS_PASOS = [
+  '/textures/2k_mercury.jpg',
+  '/textures/2k_venus_surface.jpg',
+  '/textures/2k_mars.jpg',
+  '/textures/2k_jupiter.jpg',
+  '/textures/2k_saturn.jpg',
+  '/textures/2k_uranus.jpg',
+  '/textures/2k_neptune.jpg',
+]
+
+// URL_TEXTURA_SOL / URL_TEXTURA_TIERRA
+// Texturas de los dos cuerpos que no forman parte de ningún array porque son
+// únicos en la escena: el Sol y la Tierra (punto de partida).
+const URL_TEXTURA_SOL = '/textures/2k_sun.jpg'
+const URL_TEXTURA_TIERRA = '/textures/2k_earth_daymap.jpg'
 
 // Distancias y velocidades base de las órbitas (unidades arbitrarias de la escena).
 const RADIO_SOL = 3
@@ -73,6 +97,92 @@ function LineaOrbita({ radio }) {
   )
 }
 
+// ---------------------------------------------------------------------
+// Texturas: carga con fallback a color (Fase texturas)
+// ---------------------------------------------------------------------
+
+// MaterialConTextura
+// Qué hace: carga la imagen de "url" con useTexture (de @react-three/drei) y
+// la aplica a un meshStandardMaterial mediante la prop "map" (en lugar de
+// "color"). Mientras se descarga, el componente "suspende" su renderizado;
+// si la descarga falla (red, CORS, URL caída...), useTexture lanza un error.
+// Por qué existe: aísla la llamada a useTexture para que el Suspense y el
+// ErrorBoundary de MaterialCuerpoCeleste puedan mostrar el material de color
+// mientras carga o si falla, sin tocar la lógica de órbitas/animación.
+// Recibe: url (de la textura), materialRef (para que CuerpoCeleste pueda
+// seguir animando emissiveIntensity), emissive y emissiveIntensity.
+// Devuelve: un meshStandardMaterial con la textura aplicada.
+function MaterialConTextura({ url, materialRef, emissive, emissiveIntensity }) {
+  const textura = useTexture(url)
+
+  return (
+    <meshStandardMaterial
+      ref={materialRef}
+      map={textura}
+      emissive={emissive}
+      emissiveIntensity={emissiveIntensity}
+    />
+  )
+}
+
+// TexturaErrorBoundary
+// Qué hace: si MaterialConTextura lanza un error (la textura no carga),
+// captura ese error y renderiza "fallback" (el material de color sólido) en
+// su lugar, sin romper el resto de la escena 3D.
+// Por qué existe: useTexture no se puede envolver en un try/catch normal
+// porque "suspende" el render; un ErrorBoundary es el equivalente de React
+// para capturar ese tipo de fallos durante el renderizado.
+// Recibe: fallback (el material a mostrar si falla) y children.
+// Devuelve: children, o fallback si ha ocurrido un error.
+class TexturaErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { error: true }
+  }
+
+  render() {
+    return this.state.error ? this.props.fallback : this.props.children
+  }
+}
+
+// MaterialCuerpoCeleste
+// Qué hace: decide el material de la esfera de un cuerpo celeste (o del
+// Sol). Si "texturaUrl" es null, usa directamente el material de color de
+// siempre. Si hay "texturaUrl", intenta cargarla con MaterialConTextura: el
+// material de color se muestra como fallback mientras carga (Suspense) o si
+// la carga falla (TexturaErrorBoundary).
+// Por qué existe: centraliza el "textura con fallback a color" para que
+// CuerpoCeleste y Sol lo reutilicen sin duplicar la lógica de Suspense/ErrorBoundary.
+// Recibe: texturaUrl (URL o null), color, emissive (por defecto, igual a
+// color), emissiveIntensity (por defecto 0.3) y materialRef (opcional).
+// Devuelve: un meshStandardMaterial, con o sin textura.
+function MaterialCuerpoCeleste({ texturaUrl, color, emissive = color, emissiveIntensity = 0.3, materialRef = null }) {
+  const materialColor = (
+    <meshStandardMaterial ref={materialRef} color={color} emissive={emissive} emissiveIntensity={emissiveIntensity} />
+  )
+
+  if (!texturaUrl) {
+    return materialColor
+  }
+
+  return (
+    <TexturaErrorBoundary fallback={materialColor}>
+      <Suspense fallback={materialColor}>
+        <MaterialConTextura
+          url={texturaUrl}
+          materialRef={materialRef}
+          emissive={emissive}
+          emissiveIntensity={emissiveIntensity}
+        />
+      </Suspense>
+    </TexturaErrorBoundary>
+  )
+}
+
 // CuerpoCeleste
 // Qué hace: representa cualquier cuerpo celeste (Tierra, planeta de un step
 // o planeta destino) como una esfera que orbita alrededor del Sol. Al
@@ -80,7 +190,8 @@ function LineaOrbita({ radio }) {
 // brillo extra que se va apagando, y si recibe "onClick" se puede pulsar.
 // Recibe: radioOrbita, velocidadAngular, anguloInicial, tamano, color,
 // anillos (boolean), etiqueta (texto bajo el cuerpo, opcional), numeroOrden
-// (número flotando encima, opcional) y onClick.
+// (número flotando encima, opcional), onClick y texturaUrl (URL de la
+// textura del planeta, opcional; si falla o no se indica, se usa "color").
 // Devuelve: un grupo de Three.js con la esfera, sus anillos (si tiene) y
 // sus etiquetas de texto.
 function CuerpoCeleste({
@@ -93,6 +204,7 @@ function CuerpoCeleste({
   etiqueta = null,
   numeroOrden = null,
   onClick = null,
+  texturaUrl = null,
 }) {
   const grupoRef = useRef()
   const materialRef = useRef()
@@ -134,7 +246,9 @@ function CuerpoCeleste({
         onPointerOut={onClick ? () => { document.body.style.cursor = 'default' } : undefined}
       >
         <sphereGeometry args={[tamano, 32, 32]} />
-        <meshStandardMaterial ref={materialRef} color={color} emissive={color} emissiveIntensity={0.3} />
+        {/* Si "texturaUrl" existe, se usa map={textura} (con fallback a
+            "color" mientras carga o si falla); si no, se usa "color" como antes. */}
+        <MaterialCuerpoCeleste texturaUrl={texturaUrl} color={color} materialRef={materialRef} />
       </mesh>
 
       {anillos && (
@@ -176,7 +290,14 @@ function Sol() {
     <group>
       <mesh>
         <sphereGeometry args={[RADIO_SOL, 32, 32]} />
-        <meshStandardMaterial color="#fbbf24" emissive="#f97316" emissiveIntensity={1.2} />
+        {/* Textura del Sol (URL_TEXTURA_SOL), con el mismo color/emissive de
+            siempre como fallback mientras carga o si la textura falla. */}
+        <MaterialCuerpoCeleste
+          texturaUrl={URL_TEXTURA_SOL}
+          color="#fbbf24"
+          emissive="#f97316"
+          emissiveIntensity={1.2}
+        />
       </mesh>
       <pointLight color="#fff3d6" intensity={3} distance={200} decay={0.4} />
     </group>
@@ -338,6 +459,7 @@ function SolarSystem({ route }) {
                 tamano={TAMANO_TIERRA}
                 color="#14b8a6"
                 etiqueta="Inicio"
+                texturaUrl={URL_TEXTURA_TIERRA}
               />
 
               {steps.map((step, indice) => {
@@ -354,6 +476,7 @@ function SolarSystem({ route }) {
                       color={PALETA_PASOS[indice % PALETA_PASOS.length]}
                       numeroOrden={step.orden}
                       onClick={() => setStepSeleccionado(step)}
+                      texturaUrl={TEXTURAS_PASOS[indice % TEXTURAS_PASOS.length]}
                     />
                   </group>
                 )
@@ -368,6 +491,7 @@ function SolarSystem({ route }) {
                 color={destino.color}
                 anillos={destino.anillos}
                 etiqueta={route.destino_espacial}
+                texturaUrl={destino.textura}
               />
 
               {route.estado === 'completada' && steps.length > 0 && (
