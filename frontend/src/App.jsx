@@ -8,6 +8,7 @@ import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
 import Dashboard from './components/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminPanel from './pages/AdminPanel'
 import { useAuth } from './context/AuthContext'
 
 // Home
@@ -42,10 +43,12 @@ function Home() {
 
 // App
 // Qué hace: componente raíz de la aplicación. Muestra la cabecera, un menú
-// de navegación (que cambia según haya o no sesión iniciada) y define las
-// rutas de la app: inicio, login, registro y dashboard (protegido).
+// de navegación (que cambia según haya o no sesión iniciada, y según el rol
+// del usuario) y define las rutas de la app: inicio, login, registro,
+// dashboard (protegido) y panel de administración (protegido, solo admin).
 // Por qué existe: punto de entrada de la SPA y lugar donde se conectan las
-// páginas existentes (inicio) con las nuevas de autenticación.
+// páginas existentes (inicio) con las nuevas de autenticación y de
+// administración.
 // Recibe: nada (usa el contexto de autenticación para el menú).
 // Devuelve: la cabecera, la navegación y el contenido de la ruta activa.
 function App() {
@@ -62,6 +65,12 @@ function App() {
           <>
             <Link to="/dashboard">Dashboard</Link>
             {' | '}
+            {user.role === 'admin' && (
+              <>
+                <Link to="/admin">Admin</Link>
+                {' | '}
+              </>
+            )}
             <button onClick={logout}>Cerrar sesión</button>
           </>
         ) : (
@@ -82,6 +91,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminPanel />
             </ProtectedRoute>
           }
         />

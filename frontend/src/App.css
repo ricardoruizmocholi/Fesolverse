@@ -538,3 +538,239 @@
   gap: 8px;
   justify-content: flex-end;
 }
+
+/* ===================================================================
+   Fase 6: panel de administración.
+   =================================================================== */
+
+/* Mensaje de error reutilizado en todas las secciones del panel. */
+.admin-error {
+  color: #fca5a5;
+  margin: 0 0 12px;
+}
+
+/* AdminPanel: navegación lateral + contenido de la sección activa. */
+.admin-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  text-align: left;
+  color: #e0f2fe;
+}
+
+.admin-panel__menu {
+  flex: 0 0 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(10, 10, 26, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 8px;
+}
+
+.admin-panel__menu h3 {
+  color: #7dd3fc;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.admin-panel__enlace {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  color: #e0f2fe;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.admin-panel__enlace--activo {
+  background: rgba(125, 211, 252, 0.25);
+  border-color: #7dd3fc;
+}
+
+.admin-panel__volver {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.admin-panel__contenido {
+  flex: 1;
+  min-width: 0;
+  padding: 16px;
+  background: rgba(10, 10, 26, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 8px;
+}
+
+.admin-panel__contenido h2 {
+  color: #7dd3fc;
+  margin: 0 0 12px;
+}
+
+/* AdminDashboard: tarjetas de estadísticas y gráfico de planes. */
+.admin-dashboard__tarjetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-tarjeta {
+  flex: 1;
+  min-width: 140px;
+  background: rgba(125, 211, 252, 0.05);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.admin-tarjeta__valor {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+  color: #7dd3fc;
+}
+
+.admin-tarjeta__etiqueta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #93c5fd;
+}
+
+.admin-dashboard__plan h4 {
+  color: #7dd3fc;
+  margin: 0 0 8px;
+}
+
+.admin-barra-plan {
+  display: flex;
+  width: 100%;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+}
+
+.admin-barra-plan__free,
+.admin-barra-plan__pro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+.admin-barra-plan__free {
+  background: rgba(125, 211, 252, 0.4);
+  color: #0a0a1a;
+}
+
+.admin-barra-plan__pro {
+  background: #7dd3fc;
+  color: #0a0a1a;
+}
+
+.admin-dashboard__plan-texto {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #93c5fd;
+}
+
+/* Buscador de la sección Usuarios. */
+.admin-buscador {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-buscador input {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  background: rgba(125, 211, 252, 0.05);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 4px;
+  color: #e0f2fe;
+}
+
+.admin-buscador button {
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  color: #e0f2fe;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* Tablas compartidas por las secciones Usuarios, IPs Bloqueadas y Rutas. */
+.admin-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-tabla th,
+.admin-tabla td {
+  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+  padding: 8px;
+  text-align: left;
+}
+
+.admin-tabla th {
+  color: #7dd3fc;
+  font-weight: bold;
+}
+
+.admin-tabla button {
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  color: #e0f2fe;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.admin-tabla button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.admin-tabla__sin-accion {
+  color: #93c5fd;
+}
+
+/* Paginación compartida por las secciones Usuarios y Rutas. */
+.admin-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.admin-paginacion button {
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  color: #e0f2fe;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.admin-paginacion button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
