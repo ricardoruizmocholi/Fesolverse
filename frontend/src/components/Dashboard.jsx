@@ -4,6 +4,8 @@ import api from '../api/axios'
 import RouteGenerator from './RouteGenerator'
 import RouteCard from './RouteCard'
 import SolarSystem from './SolarSystem'
+import StepProgress from './StepProgress'
+import TrelloBoard from './TrelloBoard'
 
 // Cada cuánto se consulta el detalle de una ruta en "generando" (ms).
 const INTERVALO_POLLING = 2000
@@ -30,7 +32,23 @@ function Dashboard() {
   const [cargandoRutas, setCargandoRutas] = useState(true)
   const [rutaSeleccionadaId, setRutaSeleccionadaId] = useState(null)
   const [generadorVisible, setGeneradorVisible] = useState(true)
+  const [stepTablero, setStepTablero] = useState(null)
+  const [tasksTablero, setTasksTablero] = useState([])
   const timeoutsRevelado = useRef([])
+
+  // handleStepSelect
+  // Qué hace: se ejecuta cuando el usuario hace click en un planeta/step del
+  // SolarSystem. Guarda ese step y sus tareas para mostrar, debajo del
+  // sistema solar, su barra de progreso (StepProgress) y su tablero de
+  // tareas tipo Trello (TrelloBoard).
+  // Por qué existe: es el punto de comunicación entre el SolarSystem (que
+  // detecta el click en un planeta) y el tablero de progreso de la Fase 5.
+  // Recibe: step (el step pulsado, con sus tareas precargadas).
+  // Devuelve: nada (sus efectos son actualizar "stepTablero" y "tasksTablero").
+  const handleStepSelect = (step) => {
+    setStepTablero(step)
+    setTasksTablero(step.tasks || [])
+  }
 
   // cargarRutas
   // Qué hace: pide al backend la lista de rutas del usuario autenticado
@@ -179,7 +197,18 @@ function Dashboard() {
               </ul>
             )}
 
-            {rutaSeleccionada && <SolarSystem route={rutaSeleccionada} />}
+            {rutaSeleccionada && (
+              <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
+            )}
+
+            {/* Tablero de progreso tipo Trello del step (planeta) seleccionado. */}
+            {stepTablero && (
+              <section className="tablero-progreso">
+                <h3>Progreso: {stepTablero.titulo}</h3>
+                <StepProgress tasks={tasksTablero} />
+                <TrelloBoard step={stepTablero} onTasksChange={setTasksTablero} />
+              </section>
+            )}
 
             {rutas.map((ruta) => <RouteCard key={ruta.id} route={ruta} />)}
           </>

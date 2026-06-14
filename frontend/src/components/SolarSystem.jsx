@@ -424,10 +424,12 @@ class EscenaErrorBoundary extends Component {
 // su información.
 // Por qué existe: es la visualización principal del Dashboard para una
 // ruta generada.
-// Recibe: route (la ruta con sus steps; route.steps puede ser undefined).
+// Recibe: route (la ruta con sus steps; route.steps puede ser undefined) y
+// onStepSelect (opcional; se llama con el step pulsado para que el
+// Dashboard muestre su tablero de progreso tipo Trello).
 // Devuelve: un contenedor con el Canvas de Three.js y, si hay un step
 // seleccionado, el panel de información en HTML normal (fuera del Canvas).
-function SolarSystem({ route }) {
+function SolarSystem({ route, onStepSelect }) {
   const [stepSeleccionado, setStepSeleccionado] = useState(null)
 
   if (!route) {
@@ -475,7 +477,11 @@ function SolarSystem({ route }) {
                       tamano={TAMANO_PASO}
                       color={PALETA_PASOS[indice % PALETA_PASOS.length]}
                       numeroOrden={step.orden}
-                      onClick={() => setStepSeleccionado(step)}
+                      onClick={() => {
+                        setStepSeleccionado(step)
+                        // Avisamos al Dashboard del step pulsado para que muestre su tablero Trello.
+                        onStepSelect?.(step)
+                      }}
                       texturaUrl={TEXTURAS_PASOS[indice % TEXTURAS_PASOS.length]}
                     />
                   </group>
