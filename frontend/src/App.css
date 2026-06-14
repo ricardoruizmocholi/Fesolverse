@@ -774,3 +774,142 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* ===================================================================
+   Fase 7: sistema de pagos con Stripe.
+   =================================================================== */
+
+/* Insignia mostrada en el Dashboard a los usuarios con plan "pro". */
+.plan-pro-badge {
+  display: inline-block;
+  background: rgba(125, 211, 252, 0.15);
+  border: 1px solid #7dd3fc;
+  color: #7dd3fc;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: bold;
+}
+
+/* UpgradePlan: tarjeta del plan Pro y formulario de pago con Stripe. */
+.upgrade-plan {
+  max-width: 360px;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.upgrade-plan__tarjeta {
+  background: rgba(10, 10, 26, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  color: #e0f2fe;
+}
+
+.upgrade-plan__tarjeta h3 {
+  color: #7dd3fc;
+  margin: 0 0 8px;
+}
+
+.upgrade-plan__precio {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.upgrade-plan__precio span {
+  font-size: 13px;
+  font-weight: normal;
+  color: #93c5fd;
+}
+
+.upgrade-plan__tarjeta button {
+  margin-top: 8px;
+  background: rgba(125, 211, 252, 0.15);
+  border: 1px solid #7dd3fc;
+  color: #e0f2fe;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.upgrade-plan__tarjeta button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upgrade-plan__formulario {
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(10, 10, 26, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 8px;
+}
+
+.upgrade-plan__card-element {
+  padding: 10px 8px;
+  margin-bottom: 12px;
+  background: rgba(125, 211, 252, 0.05);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 4px;
+}
+
+.upgrade-plan__formulario button {
+  width: 100%;
+  background: #7dd3fc;
+  border: none;
+  color: #0a0a1a;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.upgrade-plan__formulario button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upgrade-plan__error {
+  color: #fca5a5;
+  margin: 8px 0;
+}
+
+.upgrade-plan--exito {
+  max-width: 360px;
+  margin: 16px 0;
+  padding: 16px;
+  text-align: left;
+  background: rgba(10, 10, 26, 0.85);
+  border: 1px solid #7dd3fc;
+  border-radius: 8px;
+  color: #e0f2fe;
+}
+
+.upgrade-plan--exito h3 {
+  color: #7dd3fc;
+  margin: 0 0 8px;
+}
+
+/* PaymentHistory: tabla con el historial de pagos del usuario. */
+.payment-history__tabla {
+  width: 100%;
+  max-width: 520px;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #e0f2fe;
+}
+
+.payment-history__tabla th,
+.payment-history__tabla td {
+  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+  padding: 8px;
+  text-align: left;
+}
+
+.payment-history__tabla th {
+  color: #7dd3fc;
+  font-weight: bold;
+}
+
+.payment-history__error {
+  color: #fca5a5;
+}

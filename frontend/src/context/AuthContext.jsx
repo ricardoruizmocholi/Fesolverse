@@ -99,7 +99,19 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const value = { user, token, loading, login, register, logout }
+  // actualizarUsuario
+  // Qué hace: combina los datos recibidos con el usuario actual en el
+  // estado (por ejemplo, { plan: 'pro' } tras un pago completado).
+  // Por qué existe: permite a otros componentes (como UpgradePlan, tras la
+  // Fase 7) reflejar cambios del usuario sin tener que recargar la página
+  // ni volver a llamar a /me.
+  // Recibe: datos (objeto con los campos del usuario a actualizar).
+  // Devuelve: nada (su efecto es actualizar el estado "user").
+  const actualizarUsuario = (datos) => {
+    setUser((actual) => (actual ? { ...actual, ...datos } : actual))
+  }
+
+  const value = { user, token, loading, login, register, logout, actualizarUsuario }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
@@ -110,7 +122,7 @@ export function AuthProvider({ children }) {
 // componente que necesite saber si hay sesión o usar login/register/logout.
 // Recibe: nada.
 // Devuelve: el valor del AuthContext ({ user, token, loading, login,
-// register, logout }).
+// register, logout, actualizarUsuario }).
 export function useAuth() {
   return useContext(AuthContext)
 }

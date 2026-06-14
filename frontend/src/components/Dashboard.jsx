@@ -6,6 +6,8 @@ import RouteCard from './RouteCard'
 import SolarSystem from './SolarSystem'
 import StepProgress from './StepProgress'
 import TrelloBoard from './TrelloBoard'
+import UpgradePlan from './UpgradePlan'
+import PaymentHistory from './PaymentHistory'
 
 // Cada cuánto se consulta el detalle de una ruta en "generando" (ms).
 const INTERVALO_POLLING = 2000
@@ -16,16 +18,20 @@ const RETARDO_REVELADO_STEP = 700
 // Dashboard
 // Qué hace: página principal tras iniciar sesión. Muestra los datos del
 // usuario autenticado, el formulario para generar nuevas rutas con IA
-// (RouteGenerator, en una sección colapsable) y, para la ruta seleccionada,
-// su visualización 3D en SolarSystem junto con la lista de rutas generadas.
+// (RouteGenerator, en una sección colapsable), la sección de plan y pagos
+// (UpgradePlan si el plan es "free", o la insignia de Pro y el historial de
+// pagos si es "pro") y, para la ruta seleccionada, su visualización 3D en
+// SolarSystem junto con la lista de rutas generadas.
 // Mientras una ruta está en estado "generando", el Dashboard consulta su
 // detalle cada 2 segundos y, cuando llega el resultado, revela sus steps
 // progresivamente para que el SolarSystem los vaya materializando uno a uno.
 // Por qué existe: es la pantalla a la que se redirige tras el login o el
-// registro, y desde donde el usuario genera y visualiza sus rutas.
+// registro, y desde donde el usuario genera y visualiza sus rutas, y
+// gestiona su plan (Fase 7).
 // Recibe: nada (usa el contexto de autenticación para leer el usuario).
-// Devuelve: el bloque con la información del usuario, el generador de
-// rutas, el sistema solar de la ruta seleccionada y la lista de rutas.
+// Devuelve: el bloque con la información del usuario, la sección de plan y
+// pagos, el generador de rutas, el sistema solar de la ruta seleccionada y
+// la lista de rutas.
 function Dashboard() {
   const { user, logout } = useAuth()
   const [rutas, setRutas] = useState([])
@@ -164,6 +170,21 @@ function Dashboard() {
       )}
 
       <button onClick={logout}>Cerrar sesión</button>
+
+      {/* Sección de plan y pagos (Fase 7): los usuarios con plan "free"
+          ven la tarjeta para actualizar a Pro, y los usuarios con plan
+          "pro" ven la insignia de Pro y su historial de pagos. */}
+      <section>
+        {user?.plan === 'free' ? (
+          <UpgradePlan />
+        ) : user?.plan === 'pro' ? (
+          <>
+            <p className="plan-pro-badge">Plan Pro ✓</p>
+            <h3>Historial de pagos</h3>
+            <PaymentHistory />
+          </>
+        ) : null}
+      </section>
 
       <section>
         <button onClick={() => setGeneradorVisible((visible) => !visible)}>
