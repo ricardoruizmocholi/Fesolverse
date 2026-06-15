@@ -121,11 +121,15 @@ function LandingPage() {
           contenido (badge, título, subtítulo, botones) va encima con
           z-index superior. */}
       <section className="landing-hero">
-        <div className="landing-hero__canvas" aria-hidden="true">
+        <div
+          className="landing-hero__canvas"
+          aria-hidden="true"
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
+        >
           <SolarSystem route={RUTA_DEMO_HERO} />
         </div>
 
-        <div className="landing-hero__content">
+        <div className="landing-hero__content" style={{ position: 'relative', zIndex: 1 }}>
           <span className="landing-badge">✦ Impulsado por IA</span>
 
           <h1 className="landing-hero__title">
