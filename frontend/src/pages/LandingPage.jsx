@@ -224,6 +224,55 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SECCIÓN 3.5: DEMO DEL TABLERO DE PROGRESO. Tablero tipo Trello con
+          datos de ejemplo fijos (no conectado al backend) que muestra cómo
+          la IA organiza las tareas de cada paso de una ruta. Las tarjetas
+          son elementos visuales estáticos, no son arrastrables. */}
+      <section className="landing-progress">
+        <h2 className="landing-section-title landing-reveal">Tu progreso, organizado como nunca.</h2>
+        <p className="landing-progress__subtitle landing-reveal">
+          Cada paso de tu ruta genera automáticamente un tablero de tareas. Avanza a tu ritmo y ve cómo el universo se ilumina.
+        </p>
+
+        <div className="landing-progress__board landing-reveal">
+          <div className="landing-progress__column">
+            <h3 className="landing-progress__column-title">Por hacer</h3>
+            <div className="landing-progress__card landing-progress__card--pendiente">
+              <p>Instalar Node.js y configurar el entorno</p>
+            </div>
+            <div className="landing-progress__card landing-progress__card--pendiente">
+              <p>Estudiar los fundamentos de JavaScript</p>
+            </div>
+            <div className="landing-progress__card landing-progress__card--pendiente">
+              <p>Crear tu primer proyecto Hello World</p>
+            </div>
+          </div>
+
+          <div className="landing-progress__column">
+            <h3 className="landing-progress__column-title landing-progress__column-title--en_progreso">En progreso</h3>
+            <div className="landing-progress__card landing-progress__card--en_progreso">
+              <p>Completar el curso de React básico</p>
+            </div>
+          </div>
+
+          <div className="landing-progress__column">
+            <h3 className="landing-progress__column-title landing-progress__column-title--completada">Completado</h3>
+            <div className="landing-progress__card landing-progress__card--completada">
+              <span className="landing-progress__check" aria-hidden="true">✓</span>
+              <p>Definir tu objetivo profesional</p>
+            </div>
+            <div className="landing-progress__card landing-progress__card--completada">
+              <span className="landing-progress__check" aria-hidden="true">✓</span>
+              <p>Crear tu cuenta en Fesolverse</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="landing-progress__note">
+          La IA genera las tareas de cada paso automáticamente cuando creas tu ruta.
+        </p>
+      </section>
+
       {/* SECCIÓN 5: CTA FINAL */}
       <section className="landing-cta landing-reveal">
         <h2>¿Listo para despegar?</h2>

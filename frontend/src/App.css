@@ -1682,6 +1682,100 @@ html {
   height: 100%;
 }
 
+/* --- Sección 3.5: demo del tablero de progreso --- */
+.landing-progress {
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.landing-progress__subtitle {
+  color: var(--color-text-muted);
+  max-width: 560px;
+  margin: 0.75rem auto 3rem;
+}
+
+.landing-progress__board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.landing-progress__column {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.landing-progress__column-title {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.landing-progress__column-title--en_progreso {
+  color: var(--color-cyan);
+}
+
+.landing-progress__column-title--completada {
+  color: var(--color-success);
+}
+
+.landing-progress__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: rgba(13, 13, 31, 0.6);
+  border: 1px solid var(--color-glass-border);
+  border-left: 3px solid var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.landing-progress__card:last-child {
+  margin-bottom: 0;
+}
+
+.landing-progress__card p {
+  margin: 0;
+}
+
+.landing-progress__card--en_progreso {
+  border-left-color: var(--color-cyan);
+}
+
+.landing-progress__card--completada {
+  border-left-color: var(--color-success);
+}
+
+.landing-progress__check {
+  color: var(--color-success);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.landing-progress__note {
+  margin: 2.5rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 860px) {
+  .landing-progress__board {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- Sección 4: destinos --- */
 .landing-destinations {
   background: var(--color-bg-2);
