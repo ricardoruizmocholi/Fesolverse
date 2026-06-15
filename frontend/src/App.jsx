@@ -1,51 +1,20 @@
-import { useState, useEffect } from 'react'
-import { Link, Routes, Route } from 'react-router-dom'
+import { Link, Navigate, Routes, Route } from 'react-router-dom'
 import './App.css'
-import api from './api/axios'
 import Header from './components/Header'
-import Card from './components/Card'
 import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
 import Dashboard from './components/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import LandingPage from './pages/LandingPage'
 import AdminPanel from './pages/AdminPanel'
 import { useAuth } from './context/AuthContext'
-
-// Home
-// Qué hace: página de inicio. Carga y muestra la lista de proyectos desde
-// GET /api/projects.
-// Por qué existe: es la página original de la app (ya funcionaba antes de
-// la Fase 2); se mantiene igual, solo se traslada aquí para poder convivir
-// con las nuevas rutas de autenticación.
-// Recibe: nada.
-// Devuelve: la lista de proyectos, cada uno dentro de un componente Card.
-function Home() {
-  const [projects, setProjects] = useState([])
-
-  useEffect(() => {
-    api.get('/projects')
-      .then(response => setProjects(response.data))
-      .catch(error => console.error(error))
-  }, [])
-
-  return (
-    <div className="home">
-      {projects.map(project => (
-        <Card
-          key={project.id}
-          title={project.title}
-          description={project.description}
-        />
-      ))}
-    </div>
-  )
-}
 
 // App
 // Qué hace: componente raíz de la aplicación. Muestra la cabecera, un menú
 // de navegación (que cambia según haya o no sesión iniciada, y según el rol
-// del usuario) y define las rutas de la app: inicio, login, registro,
-// dashboard (protegido) y panel de administración (protegido, solo admin).
+// del usuario) y define las rutas de la app: inicio (landing pública o
+// redirección al dashboard si ya hay sesión), login, registro, dashboard
+// (protegido) y panel de administración (protegido, solo admin).
 // Por qué existe: punto de entrada de la SPA y lugar donde se conectan las
 // páginas existentes (inicio) con las nuevas de autenticación y de
 // administración.
@@ -92,7 +61,9 @@ function App() {
 
       <main className="app-shell__main">
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* Si ya hay sesión iniciada, "/" redirige al Dashboard; si no,
+              muestra la landing pública. */}
+          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route

@@ -1427,3 +1427,551 @@
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
+
+/* ===================================================================
+   === LANDING ===
+   =================================================================== */
+
+/* Permite que los enlaces "Ver cómo funciona" / "Descubre más" del hero
+   hagan scroll suave hasta la sección "Cómo funciona". */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll reveal simple: el elemento empieza invisible y desplazado hacia
+   abajo; LandingPage.jsx le añade "landing-reveal--visible" cuando entra en
+   el viewport (IntersectionObserver), lo que dispara esta transición. */
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.landing-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Variante grande en pill de .btn-primary / .btn-secondary para los CTA. */
+.landing-btn-lg {
+  padding: 1rem 2.25rem;
+  font-size: 1rem;
+}
+
+/* --- Sección 1: hero --- */
+.landing-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* El Canvas de Three.js de SolarSystem ocupa todo el hero como fondo.
+   pointer-events: none evita que su OrbitControls capture el scroll o los
+   clicks del usuario, dejando pasar la interacción al contenido. */
+.landing-hero__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing-hero__canvas .solar-system {
+  height: 100%;
+  border-radius: 0;
+}
+
+.landing-hero__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 760px;
+}
+
+.landing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1.1rem;
+  border-radius: 9999px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.landing-hero__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 4.5rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.landing-hero__subtitle {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  max-width: 560px;
+  margin: 0;
+}
+
+.landing-hero__actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.landing-hero__scroll {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  animation: landing-bounce 2s ease-in-out infinite;
+}
+
+@keyframes landing-bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 8px); }
+}
+
+/* --- Sección 2: cómo funciona --- */
+.landing-steps {
+  background: var(--color-bg-2);
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.landing-section-title {
+  font-size: 2.25rem;
+  margin: 0 0 3rem;
+}
+
+.landing-steps__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  transition: var(--transition);
+}
+
+.landing-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+}
+
+.landing-card__icon {
+  width: 56px;
+  height: 56px;
+  color: var(--color-accent);
+}
+
+.landing-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.landing-card h3 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.landing-card p {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --- Sección 3: visualización espacial --- */
+.landing-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+
+.landing-visual__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.landing-eyebrow {
+  color: var(--color-cyan);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.landing-visual__text h2 {
+  font-size: 2.25rem;
+  margin: 0;
+}
+
+.landing-visual__text > p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.landing-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.landing-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-text);
+}
+
+.landing-feature-list li::before {
+  content: '✓';
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* Mini preview del sistema solar: misma altura fija en los 3 tamaños,
+   solo cambia con el breakpoint de abajo en móvil. */
+.landing-visual__demo {
+  height: 400px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.landing-visual__demo .solar-system {
+  height: 100%;
+}
+
+/* --- Sección 4: destinos --- */
+.landing-destinations {
+  background: var(--color-bg-2);
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.landing-destinations__subtitle {
+  color: var(--color-text-muted);
+  max-width: 480px;
+  margin: 0.75rem auto 3rem;
+}
+
+.landing-destinations__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* El color de cada planeta llega como variable inline "--planet-color"
+   (definida en LandingPage.jsx) y se usa para el borde y el glow al hover. */
+.landing-destination-card {
+  background: var(--color-glass);
+  border: 1px solid var(--planet-color);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.25rem;
+  transition: var(--transition);
+}
+
+.landing-destination-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 24px var(--planet-color);
+}
+
+.landing-destination-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.landing-destination-card p {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* --- Sección 5: CTA final --- */
+.landing-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+  padding: 6rem 2rem;
+  background: linear-gradient(180deg, var(--color-bg), var(--color-bg-2));
+}
+
+.landing-cta h2 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.landing-cta p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.landing-cta__note {
+  font-size: 0.85rem;
+}
+
+/* --- Footer --- */
+.landing-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: var(--color-bg-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.landing-footer__logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.landing-footer__links {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.landing-footer__links a {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.landing-footer__links a:hover {
+  color: var(--color-cyan);
+}
+
+.landing-footer__copy {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* --- Responsive --- */
+@media (max-width: 860px) {
+  .landing-steps__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-visual {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-visual__demo {
+    height: 320px;
+  }
+
+  .landing-destinations__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-hero__title {
+    font-size: 2.5rem;
+  }
+
+  .landing-section-title,
+  .landing-cta h2 {
+    font-size: 1.75rem;
+  }
+
+  .landing-visual__text h2 {
+    font-size: 1.75rem;
+  }
+
+  .landing-destinations__grid {
+    gap: 1rem;
+  }
+
+  .landing-destination-card {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* ===================================================================
+   === LOGIN (pantalla dividida) ===
+   Estructura propia de LoginForm.jsx para arreglar su centrado: grid de
+   2 columnas a pantalla completa, con un panel decorativo a la izquierda
+   y la card de login centrada (vertical y horizontal) a la derecha.
+   RegisterForm.jsx no se toca y sigue usando .auth-page / .auth-card.
+   =================================================================== */
+
+.login-split {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-split__visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(13, 13, 31, 0.5);
+}
+
+/* Tres círculos concéntricos centrados, puramente decorativos. */
+.login-split__circles {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-split__circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.login-split__circle--1 {
+  width: 280px;
+  height: 280px;
+}
+
+.login-split__circle--2 {
+  width: 460px;
+  height: 460px;
+  border-color: rgba(56, 189, 248, 0.12);
+}
+
+.login-split__circle--3 {
+  width: 640px;
+  height: 640px;
+  border-color: rgba(56, 189, 248, 0.07);
+}
+
+.login-split__text {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+}
+
+.login-split__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3rem;
+  margin: 0;
+}
+
+.login-split__subtitle {
+  color: var(--color-text-muted);
+  margin: 0.75rem 0 0;
+}
+
+.login-split__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--color-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+}
+
+.login-card__logo {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.login-card h2 {
+  font-size: 1.75rem;
+  text-align: center;
+}
+
+.login-card__submit {
+  width: 100%;
+  height: 52px;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.login-card__switch {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .login-split {
+    grid-template-columns: 1fr;
+  }
+
+  .login-split__visual {
+    display: none;
+  }
+}

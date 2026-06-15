@@ -43,22 +43,28 @@ function LoginForm() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-page__visual">
-        <div className="auth-orbits" aria-hidden="true">
-          <div className="auth-orbits__ring auth-orbits__ring--1"></div>
-          <div className="auth-orbits__ring auth-orbits__ring--2"></div>
-          <div className="auth-orbits__ring auth-orbits__ring--3"></div>
+    <div className="login-split">
+      {/* Mitad izquierda: solo decorativa, oculta en móvil (ver
+          .login-split en App.css). Los 3 círculos concéntricos son
+          puramente visuales. */}
+      <div className="login-split__visual">
+        <div className="login-split__circles" aria-hidden="true">
+          <div className="login-split__circle login-split__circle--1"></div>
+          <div className="login-split__circle login-split__circle--2"></div>
+          <div className="login-split__circle login-split__circle--3"></div>
         </div>
 
-        <p className="auth-page__visual-text">
-          Tu universo profesional te espera.
-          <span>Genera tu ruta hacia cualquier meta con IA.</span>
-        </p>
+        <div className="login-split__text">
+          <h2 className="login-split__title">Bienvenido de vuelta.</h2>
+          <p className="login-split__subtitle">Tu universo te espera.</p>
+        </div>
       </div>
 
-      <div className="auth-page__form">
-        <form className="auth-card" onSubmit={handleSubmit}>
+      {/* Mitad derecha: card de login centrada vertical y horizontalmente. */}
+      <div className="login-split__panel">
+        <form className="login-card" onSubmit={handleSubmit}>
+          <p className="login-card__logo">Fesolverse <span className="navbar__dot">✦</span></p>
+
           <h2>Iniciar sesión</h2>
 
           {error && <p role="alert" className="form-error">{error}</p>}
@@ -87,11 +93,11 @@ function LoginForm() {
             />
           </div>
 
-          <button type="submit" className="btn-primary auth-card__submit" disabled={enviando}>
+          <button type="submit" className="btn-primary login-card__submit" disabled={enviando}>
             {enviando ? 'Entrando...' : 'Entrar'}
           </button>
 
-          <p className="auth-card__switch">
+          <p className="login-card__switch">
             ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
           </p>
         </form>
