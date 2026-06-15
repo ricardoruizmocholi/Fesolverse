@@ -1331,3 +1331,99 @@
     margin-top: 0;
   }
 }
+
+/* ===================================================================
+   === MAPA DE VIAJE Y TRANSICIÓN DE VISTAS ===
+   =================================================================== */
+
+.vista-container {
+  position: relative;
+}
+
+.fade-out {
+  animation: fadeOut 0.4s ease forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Estilos Leaflet dark theme */
+.leaflet-container {
+  background: var(--color-bg) !important;
+  border-radius: var(--radius-lg);
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--color-glass) !important;
+  backdrop-filter: var(--blur) !important;
+  border: 1px solid var(--color-glass-border) !important;
+  color: var(--color-text) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--color-glass) !important;
+}
+
+/* Indicador de carga mientras se calculan las rutas por carretera con OSRM */
+.mapa-viaje__cargando {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.btn-volver-universo {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.btn-switch-vista {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 100;
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text);
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.btn-switch-vista:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}

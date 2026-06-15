@@ -4,6 +4,7 @@ import api from '../api/axios'
 import RouteGenerator from './RouteGenerator'
 import RouteCard from './RouteCard'
 import SolarSystem from './SolarSystem'
+import MapView from './MapView'
 import StepProgress from './StepProgress'
 import TrelloBoard from './TrelloBoard'
 import UpgradePlan from './UpgradePlan'
@@ -42,6 +43,15 @@ function Dashboard() {
   const [tasksTablero, setTasksTablero] = useState([])
   const timeoutsRevelado = useRef([])
 
+  // Vista activa para la ruta seleccionada: 'solar' (sistema solar 3D) o
+  // 'mapa' (mapa de viaje). "transicionando" evita pulsar el botón de
+  // cambio mientras la animación está en marcha, y "claseTransicion" guarda
+  // la clase CSS de animación ('fade-out' / 'fade-in') que se aplica al
+  // contenedor de la vista.
+  const [vista, setVista] = useState('solar')
+  const [transicionando, setTransicionando] = useState(false)
+  const [claseTransicion, setClaseTransicion] = useState('')
+
   // handleStepSelect
   // Qué hace: se ejecuta cuando el usuario hace click en un planeta/step del
   // SolarSystem. Guarda ese step y sus tareas para mostrar, debajo del
@@ -54,6 +64,34 @@ function Dashboard() {
   const handleStepSelect = (step) => {
     setStepTablero(step)
     setTasksTablero(step.tasks || [])
+  }
+
+  // handleCambioVista
+  // Qué hace: alterna entre la vista del sistema solar 3D y la del mapa de
+  // viaje, con una transición de "fundido" (fade) entre ambas. Primero
+  // aplica la clase "fade-out" (la vista actual se desvanece en 400ms); a
+  // los 400ms cambia la vista activa y aplica "fade-in" (la nueva vista
+  // aparece en 400ms); otros 400ms después, termina la transición.
+  // Por qué existe: implementa la transición animada entre el sistema solar
+  // y el mapa de viaje (Fase 9). Ambas vistas permanecen montadas en todo
+  // momento (se ocultan con display:none), por lo que el fundido solo
+  // afecta a la opacidad, sin remontar el Canvas de Three.js.
+  // Recibe: nada.
+  // Devuelve: nada (sus efectos son los cambios de estado "vista",
+  // "transicionando" y "claseTransicion" descritos arriba).
+  const handleCambioVista = () => {
+    setTransicionando(true)
+    setClaseTransicion('fade-out')
+
+    setTimeout(() => {
+      setVista((actual) => (actual === 'solar' ? 'mapa' : 'solar'))
+      setClaseTransicion('fade-in')
+
+      setTimeout(() => {
+        setTransicionando(false)
+        setClaseTransicion('')
+      }, 400)
+    }, 400)
   }
 
   // cargarRutas
@@ -219,7 +257,29 @@ function Dashboard() {
             )}
 
             {rutaSeleccionada && (
-              <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
+              <div className={`vista-container ${claseTransicion}`}>
+                {/* SolarSystem y MapView permanecen siempre montados: se
+                    ocultan con display:none en lugar de desmontarse, para
+                    que el Canvas de Three.js no pierda su contexto WebGL ni
+                    sus dimensiones al alternar de vista. */}
+                <div style={{ display: vista === 'solar' ? 'block' : 'none' }}>
+                  <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
+                </div>
+                <div style={{ display: vista === 'mapa' ? 'block' : 'none' }}>
+                  <MapView route={rutaSeleccionada} onBack={handleCambioVista} onStepSelect={handleStepSelect} />
+                </div>
+
+                {/* Botón flotante para alternar entre el sistema solar y el
+                    mapa de viaje, con animación de transición entre ambos. */}
+                <button
+                  type="button"
+                  className="btn-switch-vista"
+                  onClick={handleCambioVista}
+                  disabled={transicionando}
+                >
+                  {vista === 'solar' ? '🗺️ Ver como viaje' : '🌌 Ver sistema solar'}
+                </button>
+              </div>
             )}
 
             {/* Tablero de progreso tipo Trello del step (planeta) seleccionado. */}
