@@ -141,7 +141,7 @@ function AdminUsers() {
           onChange={(event) => setBusquedaInput(event.target.value)}
           placeholder="Buscar por nombre o email..."
         />
-        <button type="submit">Buscar</button>
+        <button type="submit" className="btn-secondary">Buscar</button>
       </form>
 
       {error && <p role="alert" className="admin-error">{error}</p>}
@@ -185,6 +185,7 @@ function AdminUsers() {
                       ) : ipBloqueada ? (
                         <button
                           type="button"
+                          className="admin-tabla__accion--desbloquear"
                           onClick={() => desbloquear(usuario)}
                           disabled={accionando === usuario.id}
                         >
@@ -193,6 +194,7 @@ function AdminUsers() {
                       ) : (
                         <button
                           type="button"
+                          className="admin-tabla__accion--bloquear"
                           onClick={() => bloquear(usuario)}
                           disabled={accionando === usuario.id}
                         >

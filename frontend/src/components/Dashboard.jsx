@@ -157,24 +157,21 @@ function Dashboard() {
   const rutaSeleccionada = rutas.find((ruta) => ruta.id === rutaSeleccionadaId) || null
 
   return (
-    <div>
-      <h2>Dashboard</h2>
-
+    <div className="dashboard">
       {user && (
-        <div>
-          <p>Bienvenido, {user.name}</p>
-          <p>Email: {user.email}</p>
-          <p>Plan: {user.plan}</p>
-          <p>Tokens usados: {user.tokens_usados}</p>
+        <div className="dashboard__welcome">
+          <h2 className="dashboard__username">Bienvenido, {user.name}</h2>
+          <p className="dashboard__email">Email: {user.email}</p>
+          <p className={`plan-badge plan-badge--${user.plan}`}>Plan: {user.plan}</p>
+          <p className="dashboard__tokens">Tokens usados: {user.tokens_usados}</p>
+          <button className="btn-secondary" onClick={logout}>Cerrar sesión</button>
         </div>
       )}
-
-      <button onClick={logout}>Cerrar sesión</button>
 
       {/* Sección de plan y pagos (Fase 7): los usuarios con plan "free"
           ven la tarjeta para actualizar a Pro, y los usuarios con plan
           "pro" ven la insignia de Pro y su historial de pagos. */}
-      <section>
+      <section className="dashboard__plan-section">
         {user?.plan === 'free' ? (
           <UpgradePlan />
         ) : user?.plan === 'pro' ? (
@@ -186,16 +183,19 @@ function Dashboard() {
         ) : null}
       </section>
 
-      <section>
-        <button onClick={() => setGeneradorVisible((visible) => !visible)}>
+      <section className="dashboard__generator">
+        <button className="btn-secondary dashboard__generator-toggle" onClick={() => setGeneradorVisible((visible) => !visible)}>
           {generadorVisible ? 'Ocultar generador de rutas' : 'Generar nueva ruta'}
         </button>
 
         {generadorVisible && <RouteGenerator onRutaGenerada={cargarRutas} />}
       </section>
 
-      <section>
-        <h3>Tus rutas generadas</h3>
+      <section className="dashboard__rutas">
+        <h3 className="dashboard__rutas-titulo">
+          Tus rutas generadas
+          {rutas.length > 0 && <span className="badge-count">{rutas.length}</span>}
+        </h3>
 
         {cargandoRutas ? (
           <p>Cargando rutas...</p>

@@ -112,7 +112,7 @@ function AdminRoutes() {
                   <td>{ruta.user?.name} ({ruta.user?.email})</td>
                   <td>{new Date(ruta.created_at).toLocaleDateString()}</td>
                   <td>
-                    <button type="button" onClick={() => eliminar(ruta)} disabled={eliminando === ruta.id}>
+                    <button type="button" className="btn-danger" onClick={() => eliminar(ruta)} disabled={eliminando === ruta.id}>
                       Eliminar
                     </button>
                   </td>

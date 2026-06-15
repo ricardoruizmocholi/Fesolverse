@@ -58,65 +58,86 @@ function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Crear cuenta</h2>
+    <div className="auth-page">
+      <div className="auth-page__visual">
+        <div className="auth-orbits" aria-hidden="true">
+          <div className="auth-orbits__ring auth-orbits__ring--1"></div>
+          <div className="auth-orbits__ring auth-orbits__ring--2"></div>
+          <div className="auth-orbits__ring auth-orbits__ring--3"></div>
+        </div>
 
-      {error && <p role="alert">{error}</p>}
-
-      <div>
-        <label htmlFor="register-name">Nombre</label>
-        <input
-          id="register-name"
-          type="text"
-          value={nombre}
-          onChange={(event) => setNombre(event.target.value)}
-          required
-        />
+        <p className="auth-page__visual-text">
+          Tu universo profesional te espera.
+          <span>Genera tu ruta hacia cualquier meta con IA.</span>
+        </p>
       </div>
 
-      <div>
-        <label htmlFor="register-email">Email</label>
-        <input
-          id="register-email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
+      <div className="auth-page__form">
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <h2>Crear cuenta</h2>
+
+          {error && <p role="alert" className="form-error">{error}</p>}
+
+          <div className="field">
+            <label className="field__label" htmlFor="register-name">Nombre</label>
+            <input
+              className="field__input"
+              id="register-name"
+              type="text"
+              value={nombre}
+              onChange={(event) => setNombre(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="register-email">Email</label>
+            <input
+              className="field__input"
+              id="register-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="register-password">Contraseña</label>
+            <input
+              className="field__input"
+              id="register-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={8}
+            />
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="register-confirm-password">Confirmar contraseña</label>
+            <input
+              className="field__input"
+              id="register-confirm-password"
+              type="password"
+              value={confirmarPassword}
+              onChange={(event) => setConfirmarPassword(event.target.value)}
+              required
+              minLength={8}
+            />
+          </div>
+
+          <button type="submit" className="btn-primary auth-card__submit" disabled={enviando}>
+            {enviando ? 'Creando cuenta...' : 'Registrarme'}
+          </button>
+
+          <p className="auth-card__switch">
+            ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          </p>
+        </form>
       </div>
-
-      <div>
-        <label htmlFor="register-password">Contraseña</label>
-        <input
-          id="register-password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          minLength={8}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="register-confirm-password">Confirmar contraseña</label>
-        <input
-          id="register-confirm-password"
-          type="password"
-          value={confirmarPassword}
-          onChange={(event) => setConfirmarPassword(event.target.value)}
-          required
-          minLength={8}
-        />
-      </div>
-
-      <button type="submit" disabled={enviando}>
-        {enviando ? 'Creando cuenta...' : 'Registrarme'}
-      </button>
-
-      <p>
-        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-      </p>
-    </form>
+    </div>
   )
 }
 

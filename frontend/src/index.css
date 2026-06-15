@@ -1,129 +1,366 @@
+/* ===================================================================
+   FASE 8: sistema de diseño "Dark Space / Glassmorphism" de Fesolverse.
+   Tokens, reset global, fondo animado de estrellas y utilidades.
+   =================================================================== */
+
+/* === TOKENS === */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --color-bg: #06060f;
+  --color-bg-2: #0d0d1f;
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.10);
+  --color-glass-hover: rgba(255, 255, 255, 0.08);
+  --color-accent: #f97316;
+  --color-accent-hover: #ea6a0a;
+  --color-cyan: #38bdf8;
+  --color-text: #f0f0ff;
+  --color-text-muted: #8892a4;
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --blur: blur(16px);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --transition: all 0.2s ease;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* === RESET === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  min-height: 100vh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-inline: none;
   display: flex;
   flex-direction: column;
+  text-align: left;
+  background: transparent;
   box-sizing: border-box;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.25;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-/* ------------------------------------------------------------------ */
-/* Tema espacial (Fase 4 - visualización 3D del sistema solar)         */
-/* ------------------------------------------------------------------ */
-
-body {
-  background: #0a0a1a;
-  color: #e0f2fe;
-}
-
-#root {
-  background: #0a0a1a;
-  border-inline: 1px solid #1e293b;
-}
-
 a {
-  color: #7dd3fc;
+  color: var(--color-cyan);
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+}
+
+/* Inputs, selects y textareas: base oscura y coherente para todos los
+   formularios que todavía no tienen un estilo específico por componente. */
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: var(--color-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-cyan);
+}
+
+/* Botones sin clase propia: aspecto "glass" coherente con el resto de la
+   interfaz, para no dejar elementos sin estilo. */
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  transition: var(--transition);
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-glass-hover);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* === LAYOUT === */
+/* Envoltorio raíz de la app: navbar fija arriba y contenido debajo. */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-shell__main {
+  flex: 1;
+  width: 100%;
+}
+
+/* === ESTRELLAS ANIMADAS (fondo global) ===
+   Elemento fijo independiente del canvas de Three.js, con z-index: -1,
+   compuesto por tres capas de puntos (box-shadow) que titilan a
+   velocidades distintas. */
+.stars {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--color-bg);
+}
+
+.stars__layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  border-radius: 50%;
+}
+
+.stars__layer--sm {
+  box-shadow:
+    987px 191px #fff, 1559px 928px #fff, 1959px 423px #fff, 110px 853px #fff,
+    891px 241px #fff, 627px 593px #fff, 1168px 1200px #fff, 1939px 429px #fff,
+    2471px 1099px #fff, 153px 648px #fff, 75px 785px #fff, 2552px 815px #fff,
+    1760px 766px #fff, 1742px 264px #fff, 1882px 1126px #fff, 2516px 1166px #fff,
+    431px 1272px #fff, 413px 1191px #fff, 248px 111px #fff, 822px 320px #fff,
+    995px 1173px #fff, 1387px 772px #fff, 1528px 264px #fff, 729px 932px #fff,
+    1421px 1171px #fff, 32px 25px #fff, 2503px 845px #fff, 1099px 93px #fff,
+    2377px 1388px #fff, 1838px 279px #fff, 355px 158px #fff, 1724px 1177px #fff,
+    2211px 477px #fff, 2137px 1049px #fff, 633px 1016px #fff, 2408px 890px #fff,
+    2286px 77px #fff, 1647px 312px #fff, 1554px 947px #fff, 1550px 218px #fff,
+    1018px 359px #fff, 473px 114px #fff, 168px 1115px #fff, 652px 864px #fff,
+    414px 653px #fff, 471px 254px #fff, 855px 880px #fff, 597px 1165px #fff,
+    1711px 103px #fff, 1389px 498px #fff, 512px 102px #fff, 165px 137px #fff,
+    2297px 660px #fff, 408px 517px #fff, 2190px 1369px #fff, 1515px 749px #fff,
+    407px 524px #fff, 706px 481px #fff, 1577px 1090px #fff, 1291px 1439px #fff,
+    840px 1323px #fff, 1054px 1286px #fff, 83px 1323px #fff, 828px 369px #fff,
+    1378px 372px #fff, 608px 288px #fff, 2499px 290px #fff, 287px 1100px #fff,
+    1970px 862px #fff, 870px 306px #fff, 825px 578px #fff, 127px 559px #fff,
+    2381px 769px #fff, 556px 553px #fff, 555px 499px #fff, 1927px 234px #fff,
+    321px 478px #fff, 735px 664px #fff, 1033px 805px #fff, 460px 296px #fff,
+    319px 1284px #fff, 253px 458px #fff, 512px 504px #fff, 1527px 1158px #fff,
+    568px 438px #fff, 745px 1249px #fff, 773px 736px #fff, 1061px 692px #fff,
+    940px 1203px #fff, 2315px 251px #fff;
+  animation: star-twinkle 3s ease-in-out infinite alternate;
+}
+
+.stars__layer--md {
+  width: 2px;
+  height: 2px;
+  box-shadow:
+    131px 1205px #fff, 2304px 520px #fff, 292px 654px #fff, 1081px 883px #fff,
+    1084px 1366px #fff, 2410px 1058px #fff, 1191px 1084px #fff, 2462px 753px #fff,
+    1125px 1077px #fff, 574px 861px #fff, 521px 1005px #fff, 1765px 1401px #fff,
+    2171px 1347px #fff, 1474px 1147px #fff, 933px 540px #fff, 514px 624px #fff,
+    1696px 444px #fff, 1842px 796px #fff, 587px 1179px #fff, 2001px 724px #fff,
+    690px 716px #fff, 1491px 167px #fff, 2132px 743px #fff, 507px 1125px #fff,
+    2332px 597px #fff, 471px 339px #fff, 1196px 1134px #fff, 1327px 1120px #fff,
+    2557px 41px #fff, 892px 704px #fff, 2189px 217px #fff, 329px 854px #fff,
+    963px 1410px #fff, 2433px 876px #fff, 2167px 287px #fff, 2241px 195px #fff,
+    151px 538px #fff, 1744px 490px #fff, 2348px 1226px #fff, 885px 261px #fff,
+    566px 816px #fff, 270px 406px #fff, 1434px 905px #fff, 1555px 559px #fff,
+    853px 634px #fff, 2298px 1295px #fff, 1460px 358px #fff, 1548px 1224px #fff,
+    1474px 292px #fff, 378px 257px #fff, 485px 933px #fff, 1185px 927px #fff,
+    2370px 748px #fff, 2505px 563px #fff, 2075px 938px #fff, 1893px 216px #fff,
+    1910px 1148px #fff, 984px 544px #fff, 2123px 1314px #fff, 726px 243px #fff,
+    2368px 1140px #fff, 754px 1177px #fff, 1253px 375px #fff, 857px 915px #fff,
+    2170px 1330px #fff, 2405px 1356px #fff, 46px 267px #fff, 508px 1237px #fff,
+    309px 678px #fff, 2487px 1041px #fff;
+  animation: star-twinkle 4s ease-in-out infinite alternate;
+  animation-delay: -1.5s;
+}
+
+.stars__layer--lg {
+  width: 3px;
+  height: 3px;
+  box-shadow:
+    1083px 846px #fff, 1978px 589px #fff, 2083px 1009px #fff, 1825px 99px #fff,
+    2286px 1183px #fff, 1263px 234px #fff, 2108px 811px #fff, 41px 684px #fff,
+    914px 514px #fff, 290px 1073px #fff, 1064px 161px #fff, 1223px 562px #fff,
+    128px 593px #fff, 1733px 874px #fff, 466px 481px #fff, 1050px 715px #fff,
+    989px 1358px #fff, 1637px 1153px #fff, 1701px 344px #fff, 233px 110px #fff,
+    1735px 1123px #fff, 755px 284px #fff, 1691px 172px #fff, 2312px 529px #fff,
+    2461px 211px #fff, 445px 1041px #fff, 871px 1232px #fff, 1803px 568px #fff,
+    423px 1025px #fff, 1039px 573px #fff, 1591px 465px #fff, 192px 597px #fff,
+    2228px 199px #fff, 1173px 1420px #fff, 2120px 964px #fff, 799px 865px #fff,
+    45px 1399px #fff, 221px 972px #fff, 2514px 973px #fff, 2398px 1271px #fff;
+  animation: star-twinkle 2.5s ease-in-out infinite alternate;
+  animation-delay: -0.7s;
+}
+
+@keyframes star-twinkle {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* === BOTONES === */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+  background: var(--color-glass);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-glass-hover);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-error);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.btn-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-ghost:hover {
+  color: var(--color-cyan);
+  text-decoration: underline;
 }

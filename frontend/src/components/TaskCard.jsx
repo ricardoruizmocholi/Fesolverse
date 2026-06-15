@@ -34,7 +34,7 @@ function TaskCard({ task, index, onClick, onDelete, onMove, puedeMoverIzquierda,
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`task-card${snapshot.isDragging ? ' task-card--arrastrando' : ''}`}
+          className={`task-card task-card--${task.estado}${snapshot.isDragging ? ' task-card--arrastrando' : ''}`}
           onClick={() => onClick(task)}
         >
           <p className="task-card__titulo">{task.titulo}</p>

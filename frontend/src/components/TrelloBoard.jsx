@@ -224,7 +224,7 @@ function TrelloBoard({ step, onTasksChange }) {
             return (
               <Droppable droppableId={columna.id} key={columna.id}>
                 {(provided) => (
-                  <div className="trello-columna" ref={provided.innerRef} {...provided.droppableProps}>
+                  <div className={`trello-columna trello-columna--${columna.id}`} ref={provided.innerRef} {...provided.droppableProps}>
                     <div className="trello-columna__cabecera">
                       <h4>{columna.titulo}</h4>
                       <button

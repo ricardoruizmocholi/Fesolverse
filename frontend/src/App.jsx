@@ -29,7 +29,7 @@ function Home() {
   }, [])
 
   return (
-    <div>
+    <div className="home">
       {projects.map(project => (
         <Card
           key={project.id}
@@ -55,54 +55,64 @@ function App() {
   const { user, logout } = useAuth()
 
   return (
-    <div>
-      <Header />
+    <div className="app-shell">
+      <div className="stars" aria-hidden="true">
+        <div className="stars__layer stars__layer--sm"></div>
+        <div className="stars__layer stars__layer--md"></div>
+        <div className="stars__layer stars__layer--lg"></div>
+      </div>
 
-      <nav>
-        <Link to="/">Inicio</Link>
-        {' | '}
-        {user ? (
-          <>
-            <Link to="/dashboard">Dashboard</Link>
-            {' | '}
-            {user.role === 'admin' && (
-              <>
-                <Link to="/admin">Admin</Link>
-                {' | '}
-              </>
-            )}
-            <button onClick={logout}>Cerrar sesión</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Iniciar sesión</Link>
-            {' | '}
-            <Link to="/register">Registrarse</Link>
-          </>
-        )}
-      </nav>
+      <div className="navbar">
+        <Header />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminPanel />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+        <nav className="navbar__links">
+          <Link className="navbar__link" to="/">Inicio</Link>
+          {' | '}
+          {user ? (
+            <>
+              <Link className="navbar__link" to="/dashboard">Dashboard</Link>
+              {' | '}
+              {user.role === 'admin' && (
+                <>
+                  <Link className="navbar__link" to="/admin">Admin</Link>
+                  {' | '}
+                </>
+              )}
+              <button className="navbar__logout" onClick={logout}>Cerrar sesión</button>
+            </>
+          ) : (
+            <>
+              <Link className="navbar__link" to="/login">Iniciar sesión</Link>
+              {' | '}
+              <Link className="navbar__link" to="/register">Registrarse</Link>
+            </>
+          )}
+        </nav>
+      </div>
+
+      <main className="app-shell__main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
     </div>
   )
 }

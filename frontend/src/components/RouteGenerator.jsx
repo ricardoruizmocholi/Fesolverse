@@ -55,11 +55,12 @@ function RouteGenerator({ onRutaGenerada }) {
     <form onSubmit={handleSubmit}>
       <h3>Generar nueva ruta</h3>
 
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className="form-error">{error}</p>}
 
-      <div>
-        <label htmlFor="route-destino">¿A dónde quieres llegar?</label>
+      <div className="field">
+        <label className="field__label" htmlFor="route-destino">¿A dónde quieres llegar?</label>
         <textarea
+          className="field__input"
           id="route-destino"
           value={destino}
           onChange={(event) => setDestino(event.target.value)}
@@ -67,9 +68,10 @@ function RouteGenerator({ onRutaGenerada }) {
         />
       </div>
 
-      <div>
-        <label htmlFor="route-punto-partida">¿De dónde partes?</label>
+      <div className="field">
+        <label className="field__label" htmlFor="route-punto-partida">¿De dónde partes?</label>
         <textarea
+          className="field__input"
           id="route-punto-partida"
           value={puntoPartida}
           onChange={(event) => setPuntoPartida(event.target.value)}
@@ -77,7 +79,7 @@ function RouteGenerator({ onRutaGenerada }) {
         />
       </div>
 
-      <button type="submit" disabled={generando}>
+      <button type="submit" className="btn-primary" disabled={generando}>
         {generando ? 'Generando ruta... esto puede tardar unos segundos' : 'Generar ruta'}
       </button>
     </form>

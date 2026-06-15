@@ -9,16 +9,18 @@
 // Devuelve: la tarjeta con el resumen y los pasos de la ruta.
 function RouteCard({ route }) {
   return (
-    <article>
-      <h4>{route.titulo}</h4>
+    <article className="route-card">
+      <h4 className="route-card__titulo">{route.titulo}</h4>
 
-      <p>Destino espacial: {route.destino_espacial}</p>
-      <p>Dificultad: {route.dificultad}</p>
-      <p>Duración estimada: {route.tiempo_estimado_semanas} semanas</p>
-      <p>Estado: {route.estado}</p>
+      <div className="route-card__meta">
+        <p>Destino espacial: {route.destino_espacial}</p>
+        <p>Dificultad: {route.dificultad}</p>
+        <p>Duración estimada: {route.tiempo_estimado_semanas} semanas</p>
+        <p>Estado: {route.estado}</p>
+      </div>
 
       {route.steps && route.steps.length > 0 && (
-        <ol>
+        <ol className="route-card__steps">
           {route.steps.map((step) => (
             <li key={step.id}>
               <strong>{step.titulo}</strong>

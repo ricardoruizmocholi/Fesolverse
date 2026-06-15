@@ -1,8 +1,10 @@
 function Header() {
   return (
-    <header>
-      <h1>Fesolverse</h1>
-      <p>Explora tu universo profesional</p>
+    <header className="navbar__brand">
+      <h1 className="navbar__logo">
+        Fesolverse <span className="navbar__dot">✦</span>
+      </h1>
+      <p className="navbar__tagline">Explora tu universo profesional</p>
     </header>
   )
 }

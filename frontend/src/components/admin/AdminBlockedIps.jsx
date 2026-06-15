@@ -91,7 +91,12 @@ function AdminBlockedIps() {
                 <td>{ip.motivo || '—'}</td>
                 <td>{new Date(ip.bloqueada_hasta).toLocaleString()}</td>
                 <td>
-                  <button type="button" onClick={() => desbloquear(ip)} disabled={eliminando === ip.id}>
+                  <button
+                    type="button"
+                    className="admin-tabla__accion--desbloquear"
+                    onClick={() => desbloquear(ip)}
+                    disabled={eliminando === ip.id}
+                  >
                     Desbloquear
                   </button>
                 </td>

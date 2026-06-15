@@ -88,7 +88,7 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
 
         <h4>Editar tarea</h4>
 
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert" className="form-error">{error}</p>}
 
         <div>
           <label htmlFor="task-titulo">Título</label>
@@ -138,13 +138,13 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
         </div>
 
         <div className="task-modal__botones">
-          <button type="button" onClick={handleGuardar} disabled={guardando}>
+          <button type="button" className="btn-primary" onClick={handleGuardar} disabled={guardando}>
             {guardando ? 'Guardando...' : 'Guardar'}
           </button>
-          <button type="button" onClick={handleEliminar} disabled={guardando}>
+          <button type="button" className="btn-danger" onClick={handleEliminar} disabled={guardando}>
             Eliminar
           </button>
-          <button type="button" onClick={onClose} disabled={guardando}>
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={guardando}>
             Cerrar
           </button>
         </div>
