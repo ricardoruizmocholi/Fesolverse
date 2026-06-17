@@ -19,15 +19,7 @@ function Header() {
         <p className="navbar__tagline">Explora tu universo profesional</p>
       </div>
 
-      <button
-        type="button"
-        className="theme-toggle"
-        onClick={toggleTheme}
-        title="Cambiar tema"
-        aria-label="Cambiar tema"
-      >
-        {theme === 'dark' ? '☀️' : '🌙'}
-      </button>
+      
     </header>
   )
 }

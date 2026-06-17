@@ -15,6 +15,8 @@ import api from '../api/axios'
 function RouteGenerator({ onRutaGenerada }) {
   const [destino, setDestino] = useState('')
   const [puntoPartida, setPuntoPartida] = useState('')
+  // Fecha de hoy en formato YYYY-MM-DD, usada como valor por defecto del picker.
+  const [fechaInicio, setFechaInicio] = useState(() => new Date().toISOString().split('T')[0])
   const [generando, setGenerando] = useState(false)
   const [error, setError] = useState('')
 
@@ -36,10 +38,12 @@ function RouteGenerator({ onRutaGenerada }) {
       await api.post('/routes/generate', {
         destino,
         punto_partida: puntoPartida,
+        fecha_inicio: fechaInicio,
       })
 
       setDestino('')
       setPuntoPartida('')
+      setFechaInicio(new Date().toISOString().split('T')[0])
 
       if (onRutaGenerada) {
         onRutaGenerada()
@@ -75,6 +79,19 @@ function RouteGenerator({ onRutaGenerada }) {
           id="route-punto-partida"
           value={puntoPartida}
           onChange={(event) => setPuntoPartida(event.target.value)}
+          required
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="route-fecha-inicio">¿Cuándo quieres empezar?</label>
+        <input
+          className="field__input"
+          type="date"
+          id="route-fecha-inicio"
+          value={fechaInicio}
+          min={new Date().toISOString().split('T')[0]}
+          onChange={(event) => setFechaInicio(event.target.value)}
           required
         />
       </div>

@@ -25,6 +25,7 @@ class Route extends Model
         'dificultad',
         'tiempo_estimado_semanas',
         'estado',
+        'fecha_inicio',
     ];
 
     /**

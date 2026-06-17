@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Route;
 use App\Services\GeminiService;
+use App\Services\PlanificadorFechasService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -75,11 +76,14 @@ class RouteController extends Controller
      * validación (422), límite del plan alcanzado (403) o error al generar
      * la ruta con la IA (502).
      */
-    public function generate(Request $request, GeminiService $geminiService)
+    public function generate(Request $request, GeminiService $geminiService, PlanificadorFechasService $planificador)
     {
+        $hoy = now()->toDateString();
+
         $validator = Validator::make($request->all(), [
-            'destino' => ['required', 'string'],
+            'destino'      => ['required', 'string'],
             'punto_partida' => ['required', 'string'],
+            'fecha_inicio' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:' . $hoy],
         ]);
 
         if ($validator->fails()) {
@@ -100,48 +104,53 @@ class RouteController extends Controller
             ], 403);
         }
 
-        $destino = $request->input('destino');
+        $destino      = $request->input('destino');
         $puntoPartida = $request->input('punto_partida');
+        // Si el frontend no envía fecha, se usa hoy como punto de partida.
+        $fechaInicio  = $request->input('fecha_inicio', $hoy);
 
         // Creamos la ruta en estado "generando" con valores provisionales
         // que se sobrescribirán cuando la IA devuelva el resultado.
         $ruta = Route::create([
-            'user_id' => $usuario->id,
-            'titulo' => 'Generando ruta...',
-            'destino' => $destino,
-            'punto_partida' => $puntoPartida,
-            'destino_espacial' => 'La Luna',
-            'dificultad' => 'moderado',
+            'user_id'                => $usuario->id,
+            'titulo'                 => 'Generando ruta...',
+            'destino'                => $destino,
+            'punto_partida'          => $puntoPartida,
+            'destino_espacial'       => 'La Luna',
+            'dificultad'             => 'moderado',
             'tiempo_estimado_semanas' => 0,
-            'estado' => 'generando',
+            'estado'                 => 'generando',
+            'fecha_inicio'           => $fechaInicio,
         ]);
 
         try {
             $resultado = $geminiService->generarRuta($destino, $puntoPartida);
 
             $ruta->update([
-                'titulo' => $resultado['titulo'],
-                'destino_espacial' => $resultado['destino_espacial'],
-                'dificultad' => $resultado['dificultad'],
+                'titulo'                 => $resultado['titulo'],
+                'destino_espacial'       => $resultado['destino_espacial'],
+                'dificultad'             => $resultado['dificultad'],
                 'tiempo_estimado_semanas' => $resultado['tiempo_estimado_semanas'],
-                'estado' => 'completada',
+                'estado'                 => 'completada',
             ]);
 
-            $pasos = $resultado['steps'];
+            // Calcular fechas_limite para todas las tareas ANTES de guardar en BD.
+            // El planificador añade 'fecha_limite' a cada tarea de forma determinística
+            // usando la fecha_inicio de la ruta y tiempo_estimado_semanas de cada step.
+            $pasos = $planificador->planificarFechas($ruta, $resultado['steps']);
 
             $stepsCreados = $ruta->steps()->createMany(array_map(function (array $paso) {
                 return [
-                    'orden' => $paso['orden'],
-                    'titulo' => $paso['titulo'],
-                    'descripcion' => $paso['descripcion'],
-                    'proyecto_aprendizaje' => $paso['proyecto_aprendizaje'],
+                    'orden'                  => $paso['orden'],
+                    'titulo'                 => $paso['titulo'],
+                    'descripcion'            => $paso['descripcion'],
+                    'proyecto_aprendizaje'   => $paso['proyecto_aprendizaje'],
                     'tiempo_estimado_semanas' => $paso['tiempo_estimado_semanas'],
                 ];
             }, $pasos));
 
-            // Por cada step creamos sus tareas iniciales a partir del array
-            // "tareas" devuelto por Gemini (si un step no lo trae, o no es
-            // un array, simplemente no se le crea ninguna tarea).
+            // Por cada step creamos sus tareas con la fecha_limite ya calculada.
+            // Si un step no trae tareas (o no es un array), se omite sin errores.
             foreach ($stepsCreados as $indice => $step) {
                 $tareas = $pasos[$indice]['tareas'] ?? null;
 
@@ -156,10 +165,12 @@ class RouteController extends Controller
 
                 $step->tasks()->createMany(array_map(function (array $tarea, int $orden) {
                     return [
-                        'titulo' => $tarea['titulo'],
-                        'descripcion' => $tarea['descripcion'] ?? null,
-                        'estado' => 'pendiente',
-                        'orden' => $orden,
+                        'titulo'       => $tarea['titulo'],
+                        'descripcion'  => $tarea['descripcion'] ?? null,
+                        'estado'       => 'pendiente',
+                        'orden'        => $orden,
+                        // fecha_limite calculada por PlanificadorFechasService.
+                        'fecha_limite' => $tarea['fecha_limite'] ?? null,
                     ];
                 }, $tareasValidas, array_keys($tareasValidas)));
             }
