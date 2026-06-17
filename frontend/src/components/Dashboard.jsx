@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import RouteGenerator from './RouteGenerator'
-import RouteCard from './RouteCard'
 import SolarSystem from './SolarSystem'
 import MapView from './MapView'
 import StepProgress from './StepProgress'
 import TrelloBoard from './TrelloBoard'
 import UpgradePlan from './UpgradePlan'
 import PaymentHistory from './PaymentHistory'
+import { BlossomCarousel } from '@blossom-carousel/react'
+import '@blossom-carousel/core/style.css'
 
 // Cada cuánto se consulta el detalle de una ruta en "generando" (ms).
 const INTERVALO_POLLING = 2000
@@ -42,6 +43,9 @@ function Dashboard() {
   const [stepTablero, setStepTablero] = useState(null)
   const [tasksTablero, setTasksTablero] = useState([])
   const timeoutsRevelado = useRef([])
+  // Ref al carrusel de selección de rutas: permite llamar a prev()/next()
+  // desde los botones de flecha sin depender de estado de React.
+  const carruselRef = useRef(null)
 
   // Vista activa para la ruta seleccionada: 'solar' (sistema solar 3D) o
   // 'mapa' (mapa de viaje). "transicionando" evita pulsar el botón de
@@ -51,6 +55,21 @@ function Dashboard() {
   const [vista, setVista] = useState('solar')
   const [transicionando, setTransicionando] = useState(false)
   const [claseTransicion, setClaseTransicion] = useState('')
+
+  // Mientras la vista activa es el mapa, añade la clase "modo-mapa" a
+  // <body>. App.css usa esa clase para cambiar el fondo a un azul-verdoso
+  // oscuro (como ver la Tierra desde el espacio) y atenuar el StarField, con
+  // una transición suave. Al volver al sistema solar, o al desmontar el
+  // Dashboard, se quita la clase para no afectar al resto de la app.
+  useEffect(() => {
+    if (vista === 'mapa') {
+      document.body.classList.add('modo-mapa')
+    } else {
+      document.body.classList.remove('modo-mapa')
+    }
+
+    return () => document.body.classList.remove('modo-mapa')
+  }, [vista])
 
   // handleStepSelect
   // Qué hace: se ejecuta cuando el usuario hace click en un planeta/step del
@@ -241,19 +260,49 @@ function Dashboard() {
           <p>Todavía no has generado ninguna ruta.</p>
         ) : (
           <>
+            {/* Con una sola ruta no hace falta selector; con varias se
+                muestra el carrusel BlossomCarousel con scroll y arrastre.
+                Las flechas prev/next llaman a ref.current.prev()/next() de
+                Blossom. Los pseudo-elementos del wrapper crean el gradiente
+                de fade en los bordes como indicador de scroll. */}
             {rutas.length > 1 && (
-              <ul className="selector-rutas">
-                {rutas.map((ruta) => (
-                  <li key={ruta.id}>
-                    <button
-                      onClick={() => setRutaSeleccionadaId(ruta.id)}
-                      disabled={ruta.id === rutaSeleccionadaId}
-                    >
-                      {ruta.titulo}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div className="selector-rutas-wrapper">
+                <button
+                  type="button"
+                  className="selector-rutas__flecha selector-rutas__flecha--prev"
+                  aria-label="Rutas anteriores"
+                  onClick={() => carruselRef.current?.prev()}
+                >
+                  &#8249;
+                </button>
+
+                <BlossomCarousel
+                  ref={carruselRef}
+                  as="ul"
+                  repeat={false}
+                  className="selector-rutas"
+                >
+                  {rutas.map((ruta) => (
+                    <li key={ruta.id}>
+                      <button
+                        onClick={() => setRutaSeleccionadaId(ruta.id)}
+                        disabled={ruta.id === rutaSeleccionadaId}
+                      >
+                        {ruta.titulo}
+                      </button>
+                    </li>
+                  ))}
+                </BlossomCarousel>
+
+                <button
+                  type="button"
+                  className="selector-rutas__flecha selector-rutas__flecha--next"
+                  aria-label="Rutas siguientes"
+                  onClick={() => carruselRef.current?.next()}
+                >
+                  &#8250;
+                </button>
+              </div>
             )}
 
             {rutaSeleccionada && (
@@ -265,8 +314,8 @@ function Dashboard() {
                 <div style={{ display: vista === 'solar' ? 'block' : 'none' }}>
                   <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
                 </div>
-                <div style={{ display: vista === 'mapa' ? 'block' : 'none' }}>
-                  <MapView route={rutaSeleccionada} onBack={handleCambioVista} onStepSelect={handleStepSelect} />
+                <div style={{ visibility: vista === 'mapa' ? 'visible' : 'hidden', height: vista === 'mapa' ? 'auto' : '0', overflow: 'hidden', position: vista === 'mapa' ? 'relative' : 'absolute' }}>
+                  <MapView route={rutaSeleccionada} onBack={handleCambioVista} onStepSelect={handleStepSelect} visible={vista === 'mapa'} />
                 </div>
 
                 {/* Botón flotante para alternar entre el sistema solar y el
@@ -291,7 +340,10 @@ function Dashboard() {
               </section>
             )}
 
-            {rutas.map((ruta) => <RouteCard key={ruta.id} route={ruta} />)}
+            {/* El detalle de los steps de cada ruta se visualiza en el
+                SolarSystem (planetas) y en el MapView (marcadores de mapa),
+                no como lista de texto plana. RouteCard.jsx se conserva
+                por si se reutiliza en otro contexto. */}
           </>
         )}
       </section>

@@ -10,6 +10,21 @@ import { getDestinoCiudad } from '../utils/destinoCiudad'
 // API key.
 const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving'
 
+// Tiempo máximo de espera para la ruta completa origen→destino (solo se usa
+// para repartir los marcadores de los steps sobre carreteras reales). Si se
+// supera, se cancela la petición y los steps se reparten por interpolación
+// lineal (ver "puntosSteps" más abajo).
+const TIMEOUT_RUTA_COMPLETA_MS = 8000
+
+// Tiempo máximo de espera por cada petición OSRM de un segmento de ruta. Si
+// se supera, se cancela esa petición y el segmento se dibuja como línea
+// recta discontinua.
+const TIMEOUT_SEGMENTO_MS = 5000
+
+// Número máximo de peticiones OSRM simultáneas, para no saturar el servidor
+// público de OSRM con todas las peticiones de segmentos a la vez.
+const MAX_PETICIONES_PARALELAS = 3
+
 // interpolarPunto
 // Qué hace: calcula un punto intermedio entre dos coordenadas mediante
 // interpolación lineal simple, según una fracción "t" (0 = origen, 1 =
@@ -45,23 +60,28 @@ const extraerPuntosIntermedios = (positions, cantidad) => {
 }
 
 // obtenerRutaSegmento
-// Qué hace: pide a OSRM la ruta real por carretera entre dos puntos. Si OSRM
-// responde correctamente, devuelve las coordenadas de esa ruta (convertidas
-// de [lon, lat], formato GeoJSON, a [lat, lon], formato Leaflet) con
-// "esFallback: false". Si OSRM falla o no encuentra ruta (por ejemplo, un
-// tramo sobre el mar), devuelve una línea recta entre ambos puntos con
-// "esFallback: true", para dibujarla discontinua.
-// Recibe: origen y destino ({ lat, lon }).
+// Qué hace: pide a OSRM la ruta real por carretera entre dos puntos, con un
+// límite de tiempo "timeoutMs". Si OSRM responde a tiempo y correctamente,
+// devuelve las coordenadas de esa ruta (convertidas de [lon, lat], formato
+// GeoJSON, a [lat, lon], formato Leaflet) con "esFallback: false". Si OSRM
+// falla, no encuentra ruta (por ejemplo, un tramo sobre el mar) o tarda más
+// de "timeoutMs" (se cancela con AbortController), devuelve una línea recta
+// entre ambos puntos con "esFallback: true", para dibujarla discontinua.
+// Recibe: origen y destino ({ lat, lon }) y timeoutMs (ms antes de cancelar
+// la petición; por defecto, TIMEOUT_SEGMENTO_MS).
 // Devuelve: una promesa que resuelve a { positions, esFallback }.
-async function obtenerRutaSegmento(origen, destino) {
+async function obtenerRutaSegmento(origen, destino, timeoutMs = TIMEOUT_SEGMENTO_MS) {
   const lineaRecta = {
     positions: [[origen.lat, origen.lon], [destino.lat, destino.lon]],
     esFallback: true,
   }
 
+  const controlador = new AbortController()
+  const idTimeout = setTimeout(() => controlador.abort(), timeoutMs)
+
   try {
     const url = `${OSRM_URL}/${origen.lon},${origen.lat};${destino.lon},${destino.lat}?overview=full&geometries=geojson`
-    const respuesta = await fetch(url)
+    const respuesta = await fetch(url, { signal: controlador.signal })
     const datos = await respuesta.json()
 
     if (datos.code !== 'Ok' || !datos.routes?.[0]) {
@@ -71,7 +91,11 @@ async function obtenerRutaSegmento(origen, destino) {
     const positions = datos.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon])
     return { positions, esFallback: false }
   } catch {
+    // Incluye tanto errores de red como el AbortError lanzado al superar
+    // "timeoutMs": en ambos casos se usa la línea recta como alternativa.
     return lineaRecta
+  } finally {
+    clearTimeout(idTimeout)
   }
 }
 
@@ -94,6 +118,27 @@ function AjustarVista({ puntos }) {
   return null
 }
 
+// SincronizarTamano
+// Qué hace: detecta cuando el mapa pasa de oculto a visible (prop "visible"
+// cambia a true) y llama a map.invalidateSize() tras 100ms para que Leaflet
+// recalcule las dimensiones del contenedor. Es necesario porque el
+// MapContainer se monta mientras el div padre tiene visibility:hidden y
+// height:0, y Leaflet no puede calcular sus dimensiones correctamente hasta
+// que el mapa se hace visible.
+// Recibe: visible (booleano; true cuando el mapa está activo en el Dashboard).
+// Devuelve: null (no renderiza nada visible).
+function SincronizarTamano({ visible }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!visible) return
+    const id = setTimeout(() => map.invalidateSize(), 100)
+    return () => clearTimeout(id)
+  }, [map, visible])
+
+  return null
+}
+
 // MapView
 // Qué hace: vista alternativa al sistema solar 3D que representa la ruta de
 // aprendizaje generada como un viaje sobre un mapa real. Dibuja un
@@ -106,11 +151,13 @@ function AjustarVista({ puntos }) {
 // con OSRM una ruta real por carretera (o, si OSRM falla, una línea recta
 // discontinua).
 // Recibe: route (ruta generada, con "titulo", "destino_espacial" y "steps"),
-// onBack (función para volver a la vista del sistema solar) y onStepSelect
-// (función llamada con el step pulsado, para mostrar su tablero de tareas).
+// onBack (función para volver a la vista del sistema solar), onStepSelect
+// (función llamada con el step pulsado, para mostrar su tablero de tareas)
+// y visible (booleano; true cuando el mapa es la vista activa, usado para
+// llamar a map.invalidateSize() al hacerse visible).
 // Devuelve: el contenedor del mapa, con sus marcadores, popups, las rutas
 // por carretera y el botón para volver al sistema solar.
-function MapView({ route, onBack, onStepSelect }) {
+function MapView({ route, onBack, onStepSelect, visible }) {
   const { lat, lon } = useUserLocation()
 
   const origen = { lat, lon }
@@ -144,7 +191,10 @@ function MapView({ route, onBack, onStepSelect }) {
       return () => { activo = false }
     }
 
-    obtenerRutaSegmento(origen, destino).then((ruta) => {
+    // Se usa TIMEOUT_RUTA_COMPLETA_MS (8s): si OSRM tarda más, se cancela y
+    // los steps se reparten por interpolación lineal (puntosStepsRuta queda
+    // en null), sin bloquear el resto del mapa.
+    obtenerRutaSegmento(origen, destino, TIMEOUT_RUTA_COMPLETA_MS).then((ruta) => {
       if (!activo) return
 
       // Si OSRM no encuentra ruta entre origen y destino (esFallback), se
@@ -185,48 +235,79 @@ function MapView({ route, onBack, onStepSelect }) {
   // renderizado.
   const clavePuntos = puntosRuta.map((punto) => `${punto.lat.toFixed(4)},${punto.lon.toFixed(4)}`).join('|')
 
+  // Pares de puntos consecutivos (origen→step1, step1→step2, ...,
+  // stepN→destino), uno por cada segmento de ruta a calcular con OSRM.
+  const pares = []
+  for (let i = 0; i < puntosRuta.length - 1; i += 1) {
+    pares.push([puntosRuta[i], puntosRuta[i + 1]])
+  }
+
+  // Líneas rectas provisionales para todos los segmentos del viaje actual:
+  // se muestran de inmediato (con "cargando: true") mientras OSRM calcula
+  // las rutas reales en segundo plano, para que el mapa sea usable desde el
+  // primer renderizado.
+  const segmentosIniciales = pares.map(([a, b]) => ({
+    positions: [[a.lat, a.lon], [b.lat, b.lon]],
+    esFallback: true,
+    cargando: true,
+  }))
+
   // Resultado de OSRM para los puntos del viaje: "clave" identifica para qué
   // "clavePuntos" se calcularon "segmentos". Mientras no coincida con la
-  // "clavePuntos" actual, se considera que la ruta se está calculando.
+  // "clavePuntos" actual, se usan "segmentosIniciales" como alternativa.
   const [rutaCalculada, setRutaCalculada] = useState(null)
 
   // Al montar el componente (o cuando cambian los puntos del viaje), pide a
-  // OSRM la ruta real por carretera de cada segmento (origen→step1,
-  // step1→step2, ..., stepN→destino) en paralelo con Promise.allSettled. Si
-  // alguna petición falla o se rechaza, ese segmento se dibuja como línea
-  // recta discontinua.
+  // OSRM la ruta real por carretera de cada segmento. Para no saturar el
+  // servidor público de OSRM, las peticiones se agrupan en bloques de
+  // MAX_PETICIONES_PARALELAS (3) y se resuelven con Promise.allSettled
+  // bloque a bloque, en lugar de todas a la vez. Cada segmento empieza como
+  // línea recta provisional y se sustituye por la ruta real de OSRM en
+  // cuanto su bloque resuelve. Si una petición falla, se rechaza o supera
+  // TIMEOUT_SEGMENTO_MS, ese segmento se queda como línea recta discontinua.
   useEffect(() => {
     let activo = true
 
-    const pares = []
-    for (let i = 0; i < puntosRuta.length - 1; i += 1) {
-      pares.push([puntosRuta[i], puntosRuta[i + 1]])
+    const procesarSegmentos = async () => {
+      for (let inicio = 0; inicio < pares.length; inicio += MAX_PETICIONES_PARALELAS) {
+        if (!activo) return
+
+        const bloque = pares.slice(inicio, inicio + MAX_PETICIONES_PARALELAS)
+        const resultados = await Promise.allSettled(
+          bloque.map(([a, b]) => obtenerRutaSegmento(a, b, TIMEOUT_SEGMENTO_MS))
+        )
+
+        if (!activo) return
+
+        setRutaCalculada((actual) => {
+          const base = actual?.clave === clavePuntos ? actual.segmentos : segmentosIniciales
+          const nuevosSegmentos = [...base]
+
+          resultados.forEach((resultado, indiceBloque) => {
+            const indice = inicio + indiceBloque
+
+            nuevosSegmentos[indice] = resultado.status === 'fulfilled'
+              ? { ...resultado.value, cargando: false }
+              : { ...nuevosSegmentos[indice], cargando: false }
+          })
+
+          return { clave: clavePuntos, segmentos: nuevosSegmentos }
+        })
+      }
     }
 
-    Promise.allSettled(pares.map(([a, b]) => obtenerRutaSegmento(a, b))).then((resultados) => {
-      if (!activo) return
-
-      const nuevosSegmentos = resultados.map((resultado, indice) => {
-        if (resultado.status === 'fulfilled') {
-          return resultado.value
-        }
-
-        const [a, b] = pares[indice]
-        return {
-          positions: [[a.lat, a.lon], [b.lat, b.lon]],
-          esFallback: true,
-        }
-      })
-
-      setRutaCalculada({ clave: clavePuntos, segmentos: nuevosSegmentos })
-    })
+    procesarSegmentos()
 
     return () => { activo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clavePuntos])
 
-  const cargandoRuta = rutaCalculada?.clave !== clavePuntos
-  const segmentos = cargandoRuta ? [] : rutaCalculada.segmentos
+  // "segmentos" siempre tiene un valor (líneas rectas provisionales o rutas
+  // reales) para que el mapa muestre algo desde el primer renderizado.
+  // "cargandoRuta" solo es true mientras quede algún segmento por resolver,
+  // y controla el aviso "Calculando ruta...".
+  const segmentos = rutaCalculada?.clave === clavePuntos ? rutaCalculada.segmentos : segmentosIniciales
+  const cargandoRuta = segmentos.some((segmento) => segmento.cargando)
 
   return (
     <div className="mapa-viaje" style={{ position: 'relative' }}>
@@ -252,6 +333,10 @@ function MapView({ route, onBack, onStepSelect }) {
 
         {/* Ajusta el zoom y el centro para que origen y destino sean visibles */}
         <AjustarVista puntos={puntosRuta} />
+
+        {/* Recalcula las dimensiones del mapa al hacerse visible, para
+            compensar que el MapContainer se montó con el contenedor oculto */}
+        <SincronizarTamano visible={visible} />
 
         {/* Rutas por carretera entre cada par de puntos consecutivos. Las
             calculadas con OSRM se dibujan continuas; los tramos donde OSRM

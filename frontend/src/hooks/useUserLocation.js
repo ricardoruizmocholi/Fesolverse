@@ -14,6 +14,11 @@ const UBICACION_POR_DEFECTO = {
 // dentro de la misma pestaña.
 const CACHE_KEY = 'fesolverse_user_location'
 
+// Tiempo máximo de espera para la geolocalización por IP (ipapi.co). Si se
+// supera, se cancela la petición con AbortController y se usa Valencia como
+// ubicación por defecto (ver el catch del paso 3 más abajo).
+const TIMEOUT_IPAPI_MS = 3000
+
 // useUserLocation
 // Qué hace: obtiene la ubicación aproximada del usuario para usarla como
 // punto de origen en el mapa de viaje. Primero intenta la geolocalización
@@ -87,9 +92,15 @@ function useUserLocation() {
 
       // 3. Si la geolocalización del navegador no está disponible o se
       // deniega, recurrimos a la geolocalización por IP (ipapi.co), que no
-      // requiere permiso del usuario.
+      // requiere permiso del usuario. Se limita a TIMEOUT_IPAPI_MS (3s) con
+      // AbortController: si ipapi.co no responde a tiempo, se cancela la
+      // petición y se cae al catch de abajo, que usa Valencia de inmediato.
       try {
-        const respuesta = await fetch('https://ipapi.co/json/')
+        const controlador = new AbortController()
+        const idTimeout = setTimeout(() => controlador.abort(), TIMEOUT_IPAPI_MS)
+
+        const respuesta = await fetch('https://ipapi.co/json/', { signal: controlador.signal })
+        clearTimeout(idTimeout)
         const datos = await respuesta.json()
 
         const ubicacionIp = {
@@ -106,8 +117,9 @@ function useUserLocation() {
 
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(ubicacionIp))
       } catch {
-        // 4. Si también falla la geolocalización por IP, usamos Valencia
-        // por defecto de forma silenciosa (sin mostrar error al usuario).
+        // 4. Si también falla la geolocalización por IP (incluido el
+        // timeout de arriba), usamos Valencia por defecto de forma
+        // silenciosa (sin mostrar error al usuario).
         if (activo) {
           setUbicacion(UBICACION_POR_DEFECTO)
           setLoading(false)

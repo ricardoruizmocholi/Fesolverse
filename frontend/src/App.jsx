@@ -1,6 +1,7 @@
 import { Link, Navigate, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Header from './components/Header'
+import StarField from './components/StarField'
 import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
 import Dashboard from './components/Dashboard'
@@ -8,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import AdminPanel from './pages/AdminPanel'
 import { useAuth } from './context/AuthContext'
+import useTheme from './hooks/useTheme'
 
 // App
 // Qué hace: componente raíz de la aplicación. Muestra la cabecera, un menú
@@ -23,13 +25,14 @@ import { useAuth } from './context/AuthContext'
 function App() {
   const { user, logout } = useAuth()
 
+  // useTheme() se llama aquí para que la clase "theme-light" (si el tema
+  // guardado en localStorage es "light") se aplique a <html> nada más
+  // montar la app, antes de pintar el resto del contenido.
+  useTheme()
+
   return (
     <div className="app-shell">
-      <div className="stars" aria-hidden="true">
-        <div className="stars__layer stars__layer--sm"></div>
-        <div className="stars__layer stars__layer--md"></div>
-        <div className="stars__layer stars__layer--lg"></div>
-      </div>
+      <StarField />
 
       <div className="navbar">
         <Header />

@@ -29,6 +29,31 @@
   color-scheme: dark;
 }
 
+/* === TEMA CLARO "NEBULOSA" ===
+   useTheme.js añade la clase "theme-light" a <html> cuando el usuario
+   elige el modo claro. Solo se redefinen los colores de fondo, texto y
+   superficies "glass": --color-accent, --color-cyan, --color-success y
+   --color-error se mantienen iguales en ambos temas. El canvas de Three.js
+   (SolarSystem) sigue siendo siempre oscuro: el espacio es negro en
+   cualquier tema. */
+:root.theme-light {
+  --color-bg: #f5f0e8;
+  --color-bg-2: #ede8df;
+  --color-glass: rgba(0, 0, 0, 0.04);
+  --color-glass-border: rgba(0, 0, 0, 0.10);
+  --color-glass-hover: rgba(0, 0, 0, 0.06);
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b6b7a;
+  --color-border: rgba(0, 0, 0, 0.10);
+
+  color-scheme: light;
+}
+
+/* En modo claro el "espacio diurno" tiene menos estrellas visibles. */
+:root.theme-light .star-field {
+  opacity: 0.15;
+}
+
 /* === RESET === */
 *,
 *::before,
@@ -161,107 +186,39 @@ button:disabled {
 
 /* === ESTRELLAS ANIMADAS (fondo global) ===
    Elemento fijo independiente del canvas de Three.js, con z-index: -1,
-   compuesto por tres capas de puntos (box-shadow) que titilan a
-   velocidades distintas. */
-.stars {
+   formado por 200 estrellas (StarField.jsx) que titilan de forma
+   independiente con la animación "twinkle". La opacidad del contenedor
+   ".star-field" se reduce en modo mapa (ver "MODO MAPA" en App.css) y en
+   modo claro (ver ":root.theme-light" más abajo). */
+.star-field {
   position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--color-bg);
-}
-
-.stars__layer {
-  position: absolute;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  background: transparent;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+.star-field__star {
+  position: absolute;
   border-radius: 50%;
+  background: #fff;
+  animation-name: twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
-.stars__layer--sm {
-  box-shadow:
-    987px 191px #fff, 1559px 928px #fff, 1959px 423px #fff, 110px 853px #fff,
-    891px 241px #fff, 627px 593px #fff, 1168px 1200px #fff, 1939px 429px #fff,
-    2471px 1099px #fff, 153px 648px #fff, 75px 785px #fff, 2552px 815px #fff,
-    1760px 766px #fff, 1742px 264px #fff, 1882px 1126px #fff, 2516px 1166px #fff,
-    431px 1272px #fff, 413px 1191px #fff, 248px 111px #fff, 822px 320px #fff,
-    995px 1173px #fff, 1387px 772px #fff, 1528px 264px #fff, 729px 932px #fff,
-    1421px 1171px #fff, 32px 25px #fff, 2503px 845px #fff, 1099px 93px #fff,
-    2377px 1388px #fff, 1838px 279px #fff, 355px 158px #fff, 1724px 1177px #fff,
-    2211px 477px #fff, 2137px 1049px #fff, 633px 1016px #fff, 2408px 890px #fff,
-    2286px 77px #fff, 1647px 312px #fff, 1554px 947px #fff, 1550px 218px #fff,
-    1018px 359px #fff, 473px 114px #fff, 168px 1115px #fff, 652px 864px #fff,
-    414px 653px #fff, 471px 254px #fff, 855px 880px #fff, 597px 1165px #fff,
-    1711px 103px #fff, 1389px 498px #fff, 512px 102px #fff, 165px 137px #fff,
-    2297px 660px #fff, 408px 517px #fff, 2190px 1369px #fff, 1515px 749px #fff,
-    407px 524px #fff, 706px 481px #fff, 1577px 1090px #fff, 1291px 1439px #fff,
-    840px 1323px #fff, 1054px 1286px #fff, 83px 1323px #fff, 828px 369px #fff,
-    1378px 372px #fff, 608px 288px #fff, 2499px 290px #fff, 287px 1100px #fff,
-    1970px 862px #fff, 870px 306px #fff, 825px 578px #fff, 127px 559px #fff,
-    2381px 769px #fff, 556px 553px #fff, 555px 499px #fff, 1927px 234px #fff,
-    321px 478px #fff, 735px 664px #fff, 1033px 805px #fff, 460px 296px #fff,
-    319px 1284px #fff, 253px 458px #fff, 512px 504px #fff, 1527px 1158px #fff,
-    568px 438px #fff, 745px 1249px #fff, 773px 736px #fff, 1061px 692px #fff,
-    940px 1203px #fff, 2315px 251px #fff;
-  animation: star-twinkle 3s ease-in-out infinite alternate;
-}
-
-.stars__layer--md {
-  width: 2px;
-  height: 2px;
-  box-shadow:
-    131px 1205px #fff, 2304px 520px #fff, 292px 654px #fff, 1081px 883px #fff,
-    1084px 1366px #fff, 2410px 1058px #fff, 1191px 1084px #fff, 2462px 753px #fff,
-    1125px 1077px #fff, 574px 861px #fff, 521px 1005px #fff, 1765px 1401px #fff,
-    2171px 1347px #fff, 1474px 1147px #fff, 933px 540px #fff, 514px 624px #fff,
-    1696px 444px #fff, 1842px 796px #fff, 587px 1179px #fff, 2001px 724px #fff,
-    690px 716px #fff, 1491px 167px #fff, 2132px 743px #fff, 507px 1125px #fff,
-    2332px 597px #fff, 471px 339px #fff, 1196px 1134px #fff, 1327px 1120px #fff,
-    2557px 41px #fff, 892px 704px #fff, 2189px 217px #fff, 329px 854px #fff,
-    963px 1410px #fff, 2433px 876px #fff, 2167px 287px #fff, 2241px 195px #fff,
-    151px 538px #fff, 1744px 490px #fff, 2348px 1226px #fff, 885px 261px #fff,
-    566px 816px #fff, 270px 406px #fff, 1434px 905px #fff, 1555px 559px #fff,
-    853px 634px #fff, 2298px 1295px #fff, 1460px 358px #fff, 1548px 1224px #fff,
-    1474px 292px #fff, 378px 257px #fff, 485px 933px #fff, 1185px 927px #fff,
-    2370px 748px #fff, 2505px 563px #fff, 2075px 938px #fff, 1893px 216px #fff,
-    1910px 1148px #fff, 984px 544px #fff, 2123px 1314px #fff, 726px 243px #fff,
-    2368px 1140px #fff, 754px 1177px #fff, 1253px 375px #fff, 857px 915px #fff,
-    2170px 1330px #fff, 2405px 1356px #fff, 46px 267px #fff, 508px 1237px #fff,
-    309px 678px #fff, 2487px 1041px #fff;
-  animation: star-twinkle 4s ease-in-out infinite alternate;
-  animation-delay: -1.5s;
-}
-
-.stars__layer--lg {
-  width: 3px;
-  height: 3px;
-  box-shadow:
-    1083px 846px #fff, 1978px 589px #fff, 2083px 1009px #fff, 1825px 99px #fff,
-    2286px 1183px #fff, 1263px 234px #fff, 2108px 811px #fff, 41px 684px #fff,
-    914px 514px #fff, 290px 1073px #fff, 1064px 161px #fff, 1223px 562px #fff,
-    128px 593px #fff, 1733px 874px #fff, 466px 481px #fff, 1050px 715px #fff,
-    989px 1358px #fff, 1637px 1153px #fff, 1701px 344px #fff, 233px 110px #fff,
-    1735px 1123px #fff, 755px 284px #fff, 1691px 172px #fff, 2312px 529px #fff,
-    2461px 211px #fff, 445px 1041px #fff, 871px 1232px #fff, 1803px 568px #fff,
-    423px 1025px #fff, 1039px 573px #fff, 1591px 465px #fff, 192px 597px #fff,
-    2228px 199px #fff, 1173px 1420px #fff, 2120px 964px #fff, 799px 865px #fff,
-    45px 1399px #fff, 221px 972px #fff, 2514px 973px #fff, 2398px 1271px #fff;
-  animation: star-twinkle 2.5s ease-in-out infinite alternate;
-  animation-delay: -0.7s;
-}
-
-@keyframes star-twinkle {
-  0% {
-    opacity: 0.6;
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
   }
-  100% {
+  50% {
     opacity: 1;
+    transform: scale(1.2);
   }
 }
 

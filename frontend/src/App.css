@@ -78,6 +78,32 @@
 }
 
 /* ===================================================================
+   === MODO MAPA ===
+   Cuando el Dashboard muestra la vista de mapa (vista === 'mapa'),
+   Dashboard.jsx añade la clase "modo-mapa" a <body>. El fondo cambia a un
+   azul-verdoso oscuro, como ver la Tierra desde el espacio, y el StarField
+   se atenúa (de día se ven menos estrellas), con una transición suave de 1s
+   en ambos sentidos.
+   =================================================================== */
+
+body {
+  transition: background-color 1s ease;
+}
+
+.modo-mapa {
+  --color-bg: #051a1a;
+  --color-bg-2: #0a2020;
+}
+
+body.modo-mapa {
+  background: var(--color-bg);
+}
+
+body.modo-mapa .star-field {
+  opacity: 0.3;
+}
+
+/* ===================================================================
    === NAVBAR ===
    =================================================================== */
 
@@ -98,8 +124,29 @@
 
 .navbar__brand {
   display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar__brand-text {
+  display: flex;
   flex-direction: column;
   gap: 0.15rem;
+}
+
+/* Botón "pill" para alternar entre el tema oscuro y el tema claro
+   "nebulosa" (ver useTheme.js). Solo muestra el emoji ☀️/🌙, sin texto. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 9999px;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .navbar__logo {
@@ -437,15 +484,93 @@
   font-family: var(--font-body);
 }
 
-/* Selector de ruta a visualizar: pills horizontales con scroll. */
+/* Contenedor relativo del carrusel de selección de ruta y sus flechas de
+   navegación. Los pseudo-elementos ::before y ::after crean un gradiente de
+   fade justo dentro de las flechas para indicar que hay más contenido. */
+.selector-rutas-wrapper {
+  position: relative;
+}
+
+.selector-rutas-wrapper::before,
+.selector-rutas-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0.5rem;
+  width: 1.5rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Los fades empiezan en el borde interior de las flechas (2rem) para que
+   el gradiente quede entre la flecha y las pills, no debajo de la flecha. */
+.selector-rutas-wrapper::before {
+  left: 2rem;
+  background: linear-gradient(to right, var(--color-bg), transparent);
+}
+
+.selector-rutas-wrapper::after {
+  right: 2rem;
+  background: linear-gradient(to left, var(--color-bg), transparent);
+}
+
+/* Flechas de navegación del carrusel: absolutas a izquierda y derecha del
+   wrapper, con estilo glassmorphism coherente con el resto de la UI. */
+.selector-rutas__flecha {
+  position: absolute;
+  top: 0;
+  bottom: 0.5rem;
+  width: 2rem;
+  z-index: 2;
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: filter var(--transition);
+}
+
+.selector-rutas__flecha:hover {
+  filter: brightness(1.3);
+}
+
+.selector-rutas__flecha--prev { left: 0; }
+.selector-rutas__flecha--next { right: 0; }
+
+/* Selector de ruta: carrusel horizontal con scroll y arrastre (Blossom).
+   El padding lateral reserva espacio para las flechas de navegación. */
 .selector-rutas {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   list-style: none;
-  padding: 0.25rem 0;
+  padding: 0 2rem 0.5rem;
   margin: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   flex-wrap: nowrap;
+  scroll-behavior: smooth;
+  /* Scrollbar sutil: funcional pero discreta */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-glass-border) transparent;
+}
+
+.selector-rutas::-webkit-scrollbar {
+  height: 4px;
+}
+
+.selector-rutas::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selector-rutas::-webkit-scrollbar-thumb {
+  background: var(--color-glass-border);
+  border-radius: 9999px;
 }
 
 .selector-rutas li {
@@ -1374,6 +1499,17 @@
 
 .leaflet-popup-tip {
   background: var(--color-glass) !important;
+}
+
+/* Crea un nuevo stacking context para el mapa, de modo que los z-index
+   internos de Leaflet (.leaflet-pane, .leaflet-top, .leaflet-control, etc.,
+   que pueden llegar a z-index: 1000) queden confinados dentro de este
+   contenedor y no compitan con elementos externos como la navbar. Sin
+   isolation: isolate, esos z-index altos hacen que el mapa tape la navbar
+   aunque la navbar tenga z-index: 100 y position: sticky. */
+.mapa-viaje {
+  position: relative;
+  isolation: isolate;
 }
 
 /* Indicador de carga mientras se calculan las rutas por carretera con OSRM */
