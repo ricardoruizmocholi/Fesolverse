@@ -2205,3 +2205,442 @@ html {
     display: none;
   }
 }
+
+
+/* ===================================================================
+   === CALENDARIO ===
+   =================================================================== */
+
+/* Página principal */
+.cal-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cal-page__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cal-page__titulo {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--color-text);
+}
+
+.cal-page__error {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+.cal-page__estado {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.cal-page__estado--vacio {
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Toggle Mes / Sprint semanal */
+.cal-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+  padding: 0.25rem;
+}
+
+.cal-toggle__btn {
+  border-radius: 9999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.cal-toggle__btn--activo {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* Botones de navegación de mes/semana (flechas) */
+.cal-nav-btn {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  border-radius: 9999px;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: filter var(--transition);
+  flex-shrink: 0;
+}
+
+.cal-nav-btn:hover {
+  filter: brightness(1.3);
+}
+
+/* === VISTA MES === */
+
+.cal-mes__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cal-mes__titulo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-text);
+}
+
+.cal-mes__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--color-glass-border);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.cal-mes__col-nombre {
+  background: var(--color-glass);
+  text-align: center;
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cal-mes__celda {
+  background: var(--color-glass);
+  min-height: 7rem;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: background var(--transition);
+}
+
+.cal-mes__celda:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cal-mes__celda--otro-mes {
+  opacity: 0.4;
+}
+
+.cal-mes__celda--hoy {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.cal-mes__celda-num {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  align-self: flex-end;
+}
+
+.cal-mes__tarea {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 3px solid;
+  color: var(--color-text);
+  transition: filter var(--transition);
+}
+
+.cal-mes__tarea:hover {
+  filter: brightness(1.3);
+}
+
+.cal-mes__tarea--gris  { border-color: var(--color-text-muted); }
+.cal-mes__tarea--cyan  { border-color: #38bdf8; }
+.cal-mes__tarea--verde { border-color: #22c55e; }
+
+.cal-mes__mas {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+/* === VISTA SPRINT SEMANAL === */
+
+.cal-semana {
+  overflow-x: auto;
+}
+
+.cal-semana__grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(150px, 1fr));
+  gap: 0.75rem;
+  min-width: 900px;
+}
+
+.cal-semana__col {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.cal-semana__col--hoy {
+  border-color: var(--color-accent);
+}
+
+.cal-semana__col--sin-fecha {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.cal-semana__col-cabecera {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-glass-border);
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.cal-semana__col-mes {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.cal-semana__col-tareas {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: background var(--transition);
+}
+
+.cal-semana__col-tareas--over {
+  background: rgba(56, 189, 248, 0.07);
+}
+
+.cal-tarea-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.cal-tarea-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cal-tarea-card--dragging {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: rotate(1.5deg);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cal-tarea-card__titulo {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+
+.cal-tarea-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* === BADGES === */
+
+.cal-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 120px;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.cal-badge--ruta  { background: rgba(249, 115, 22, 0.18); color: #f97316; }
+.cal-badge--step  { background: rgba(255, 255, 255, 0.08); color: var(--color-text-muted); }
+.cal-badge--gris  { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+.cal-badge--cyan  { background: rgba(56, 189, 248, 0.18); color: #38bdf8; }
+.cal-badge--verde { background: rgba(34, 197, 94, 0.18); color: #22c55e; }
+
+/* === MODAL DE DETALLE === */
+
+.cal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.cal-modal {
+  position: relative;
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+.cal-modal__cerrar {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: color var(--transition);
+}
+
+.cal-modal__cerrar:hover {
+  color: var(--color-text);
+}
+
+.cal-modal__titulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+  padding-right: 2rem;
+}
+
+.cal-modal__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.cal-modal__seccion {
+  margin-bottom: 1.25rem;
+}
+
+.cal-modal__seccion-titulo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.cal-modal__texto {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.cal-modal__fecha-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cal-modal__fecha-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.cal-modal__fecha-input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* === RESPONSIVE CALENDARIO === */
+
+@media (max-width: 860px) {
+  .cal-page {
+    padding: 1rem;
+  }
+
+  .cal-semana__grid {
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
+  }
+
+  .cal-mes__celda {
+    min-height: 4rem;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .cal-page__cabecera {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cal-semana__grid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}

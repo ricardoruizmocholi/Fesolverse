@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import AdminPanel from './pages/AdminPanel'
+import CalendarPage from './pages/CalendarPage'
 import { useAuth } from './context/AuthContext'
 import useTheme from './hooks/useTheme'
 
@@ -44,6 +45,8 @@ function App() {
             <>
               <Link className="navbar__link" to="/dashboard">Dashboard</Link>
               {' | '}
+              <Link className="navbar__link" to="/calendario">Calendario</Link>
+              {' | '}
               {user.role === 'admin' && (
                 <>
                   <Link className="navbar__link" to="/admin">Admin</Link>
@@ -74,6 +77,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendario"
+            element={
+              <ProtectedRoute>
+                <CalendarPage />
               </ProtectedRoute>
             }
           />
