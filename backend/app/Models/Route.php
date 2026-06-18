@@ -26,6 +26,19 @@ class Route extends Model
         'tiempo_estimado_semanas',
         'estado',
         'fecha_inicio',
+        'archivada',
+        'archivada_en',
+    ];
+
+    /**
+     * Convierte automáticamente archivada_en a instancia Carbon para poder
+     * llamar a ->diffInDays() desde el controlador sin castings manuales.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'archivada'    => 'boolean',
+        'archivada_en' => 'datetime',
     ];
 
     /**

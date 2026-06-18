@@ -40,7 +40,7 @@ class CalendarController extends Controller
      */
     public function tasks(Request $request): JsonResponse
     {
-        $query = Task::whereHas('step.route', fn ($q) => $q->where('user_id', $request->user()->id))
+        $query = Task::whereHas('step.route', fn ($q) => $q->where('user_id', $request->user()->id)->where('archivada', false))
             ->with([
                 // Cargamos solo las columnas necesarias para reducir el payload.
                 // route_id es obligatorio para que Eloquent pueda resolver

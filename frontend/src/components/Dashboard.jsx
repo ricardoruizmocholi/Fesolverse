@@ -47,6 +47,19 @@ function Dashboard() {
   // desde los botones de flecha sin depender de estado de React.
   const carruselRef = useRef(null)
 
+  // --- Estado de archivado ---
+  // archivando: id de la ruta que está siendo archivada (deshabilita el botón).
+  const [archivando, setArchivando] = useState(null)
+  // mensajeArchivar: confirmación temporal tras archivar con éxito.
+  const [mensajeArchivar, setMensajeArchivar] = useState('')
+  // archivadasVisible: si la sección de rutas archivadas está expandida.
+  const [archivadasVisible, setArchivadasVisible] = useState(false)
+  // rutasArchivadas: lista cargada bajo demanda al expandir la sección.
+  const [rutasArchivadas, setRutasArchivadas] = useState([])
+  const [cargandoArchivadas, setCargandoArchivadas] = useState(false)
+  // restaurando: id de la ruta que está siendo restaurada.
+  const [restaurando, setRestaurando] = useState(null)
+
   // Vista activa para la ruta seleccionada: 'solar' (sistema solar 3D) o
   // 'mapa' (mapa de viaje). "transicionando" evita pulsar el botón de
   // cambio mientras la animación está en marcha, y "claseTransicion" guarda
@@ -76,10 +89,6 @@ function Dashboard() {
   // SolarSystem. Guarda ese step y sus tareas para mostrar, debajo del
   // sistema solar, su barra de progreso (StepProgress) y su tablero de
   // tareas tipo Trello (TrelloBoard).
-  // Por qué existe: es el punto de comunicación entre el SolarSystem (que
-  // detecta el click en un planeta) y el tablero de progreso de la Fase 5.
-  // Recibe: step (el step pulsado, con sus tareas precargadas).
-  // Devuelve: nada (sus efectos son actualizar "stepTablero" y "tasksTablero").
   const handleStepSelect = (step) => {
     setStepTablero(step)
     setTasksTablero(step.tasks || [])
@@ -87,17 +96,7 @@ function Dashboard() {
 
   // handleCambioVista
   // Qué hace: alterna entre la vista del sistema solar 3D y la del mapa de
-  // viaje, con una transición de "fundido" (fade) entre ambas. Primero
-  // aplica la clase "fade-out" (la vista actual se desvanece en 400ms); a
-  // los 400ms cambia la vista activa y aplica "fade-in" (la nueva vista
-  // aparece en 400ms); otros 400ms después, termina la transición.
-  // Por qué existe: implementa la transición animada entre el sistema solar
-  // y el mapa de viaje (Fase 9). Ambas vistas permanecen montadas en todo
-  // momento (se ocultan con display:none), por lo que el fundido solo
-  // afecta a la opacidad, sin remontar el Canvas de Three.js.
-  // Recibe: nada.
-  // Devuelve: nada (sus efectos son los cambios de estado "vista",
-  // "transicionando" y "claseTransicion" descritos arriba).
+  // viaje, con una transición de "fundido" (fade) entre ambas.
   const handleCambioVista = () => {
     setTransicionando(true)
     setClaseTransicion('fade-out')
@@ -114,14 +113,10 @@ function Dashboard() {
   }
 
   // cargarRutas
-  // Qué hace: pide al backend la lista de rutas del usuario autenticado
-  // (GET /routes) y la guarda en el estado. Si todavía no hay ninguna ruta
-  // seleccionada, selecciona la primera de la lista.
-  // Por qué existe: se usa al montar el Dashboard y cada vez que
-  // RouteGenerator genera una ruta nueva, para mantener la lista actualizada.
-  // Recibe: nada.
-  // Devuelve: nada (sus efectos son actualizar el estado "rutas" y
-  // "rutaSeleccionadaId").
+  // Qué hace: pide al backend la lista de rutas ACTIVAS del usuario (GET
+  // /routes, sin ?archivadas, por lo que solo devuelve las no archivadas) y
+  // la guarda en el estado. Si todavía no hay ninguna ruta seleccionada,
+  // selecciona la primera de la lista.
   const cargarRutas = useCallback(async () => {
     try {
       const response = await api.get('/routes')
@@ -157,11 +152,7 @@ function Dashboard() {
   // revelarStepsProgresivamente
   // Qué hace: una vez que la IA ha terminado de generar una ruta (con todos
   // sus steps de golpe), va añadiendo esos steps al estado de uno en uno,
-  // con un pequeño retardo entre cada uno. Así, en el SolarSystem, cada
-  // planeta nuevo aparece con su animación de materialización por separado
-  // en lugar de aparecer todos a la vez.
-  // Recibe: rutaActualizada (la ruta ya completada, con todos sus steps).
-  // Devuelve: nada (sus efectos son ir actualizando el estado "rutas").
+  // con un pequeño retardo entre cada uno.
   const revelarStepsProgresivamente = useCallback((rutaActualizada) => {
     const steps = rutaActualizada.steps || []
 
@@ -211,6 +202,82 @@ function Dashboard() {
     return () => clearInterval(intervalo)
   }, [rutas, rutaSeleccionadaId, revelarStepsProgresivamente])
 
+  // handleArchivar
+  // Qué hace: envía POST /routes/{id}/archive, quita la ruta del carrusel
+  // activo y selecciona automáticamente la primera ruta restante. Si la
+  // sección de archivadas estaba expandida, añade la ruta archivada a esa
+  // lista sin necesidad de recargarla desde el backend.
+  const handleArchivar = async (rutaId) => {
+    setArchivando(rutaId)
+
+    try {
+      const response = await api.post(`/routes/${rutaId}/archive`)
+      const rutaArchivada = response.data.data.route
+
+      const rutasRestantes = rutas.filter((r) => r.id !== rutaId)
+      setRutas(rutasRestantes)
+      setRutaSeleccionadaId(
+        rutaSeleccionadaId === rutaId
+          ? (rutasRestantes.length > 0 ? rutasRestantes[0].id : null)
+          : rutaSeleccionadaId
+      )
+
+      // Actualizar lista de archivadas si ya estaba cargada.
+      if (archivadasVisible) {
+        setRutasArchivadas((prev) => [rutaArchivada, ...prev])
+      }
+
+      setMensajeArchivar('Ruta archivada. Puedes restaurarla desde "Rutas archivadas".')
+      setTimeout(() => setMensajeArchivar(''), 4000)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setArchivando(null)
+    }
+  }
+
+  // handleExpandirArchivadas
+  // Qué hace: alterna la visibilidad de la sección de rutas archivadas. La
+  // primera vez que se expande carga las rutas con GET /routes?archivadas=true.
+  // Las expansiones siguientes reutilizan la lista ya cargada.
+  const handleExpandirArchivadas = async () => {
+    const abrir = !archivadasVisible
+    setArchivadasVisible(abrir)
+
+    if (abrir && rutasArchivadas.length === 0) {
+      setCargandoArchivadas(true)
+
+      try {
+        const response = await api.get('/routes', { params: { archivadas: true } })
+        setRutasArchivadas(response.data.data.routes)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setCargandoArchivadas(false)
+      }
+    }
+  }
+
+  // handleRestaurar
+  // Qué hace: envía POST /routes/{id}/unarchive, mueve la ruta de la lista
+  // de archivadas al carrusel activo y la selecciona automáticamente.
+  const handleRestaurar = async (rutaId) => {
+    setRestaurando(rutaId)
+
+    try {
+      const response = await api.post(`/routes/${rutaId}/unarchive`)
+      const rutaRestaurada = response.data.data.route
+
+      setRutasArchivadas((prev) => prev.filter((r) => r.id !== rutaId))
+      setRutas((prev) => [rutaRestaurada, ...prev])
+      setRutaSeleccionadaId(rutaRestaurada.id)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setRestaurando(null)
+    }
+  }
+
   const rutaSeleccionada = rutas.find((ruta) => ruta.id === rutaSeleccionadaId) || null
 
   return (
@@ -225,9 +292,7 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Sección de plan y pagos (Fase 7): los usuarios con plan "free"
-          ven la tarjeta para actualizar a Pro, y los usuarios con plan
-          "pro" ven la insignia de Pro y su historial de pagos. */}
+      {/* Sección de plan y pagos (Fase 7) */}
       <section className="dashboard__plan-section">
         {user?.plan === 'free' ? (
           <UpgradePlan />
@@ -254,6 +319,11 @@ function Dashboard() {
           {rutas.length > 0 && <span className="badge-count">{rutas.length}</span>}
         </h3>
 
+        {/* Confirmación temporal tras archivar una ruta */}
+        {mensajeArchivar && (
+          <p className="dashboard__msg-archivar" role="status">{mensajeArchivar}</p>
+        )}
+
         {cargandoRutas ? (
           <p>Cargando rutas...</p>
         ) : rutas.length === 0 ? (
@@ -261,10 +331,7 @@ function Dashboard() {
         ) : (
           <>
             {/* Con una sola ruta no hace falta selector; con varias se
-                muestra el carrusel BlossomCarousel con scroll y arrastre.
-                Las flechas prev/next llaman a ref.current.prev()/next() de
-                Blossom. Los pseudo-elementos del wrapper crean el gradiente
-                de fade en los bordes como indicador de scroll. */}
+                muestra el carrusel BlossomCarousel con scroll y arrastre. */}
             {rutas.length > 1 && (
               <div className="selector-rutas-wrapper">
                 <button
@@ -306,29 +373,50 @@ function Dashboard() {
             )}
 
             {rutaSeleccionada && (
-              <div className={`vista-container ${claseTransicion}`}>
-                {/* SolarSystem y MapView permanecen siempre montados: se
-                    ocultan con display:none en lugar de desmontarse, para
-                    que el Canvas de Three.js no pierda su contexto WebGL ni
-                    sus dimensiones al alternar de vista. */}
-                <div style={{ display: vista === 'solar' ? 'block' : 'none' }}>
-                  <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
-                </div>
-                <div style={{ visibility: vista === 'mapa' ? 'visible' : 'hidden', height: vista === 'mapa' ? 'auto' : '0', overflow: 'hidden', position: vista === 'mapa' ? 'relative' : 'absolute' }}>
-                  <MapView route={rutaSeleccionada} onBack={handleCambioVista} onStepSelect={handleStepSelect} visible={vista === 'mapa'} />
+              <>
+                {/* Cabecera de la ruta seleccionada: título, destino espacial,
+                    dificultad y botón para archivarla. Archivar la oculta del
+                    carrusel y la mueve a "Rutas archivadas" (15 días para restaurar). */}
+                <div className="ruta-cabecera">
+                  <div className="ruta-cabecera__info">
+                    <span className="ruta-cabecera__titulo">{rutaSeleccionada.titulo}</span>
+                    <span className="ruta-cabecera__meta">
+                      {rutaSeleccionada.destino_espacial} · {rutaSeleccionada.dificultad}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-secondary ruta-cabecera__archivar"
+                    onClick={() => handleArchivar(rutaSeleccionada.id)}
+                    disabled={archivando === rutaSeleccionada.id}
+                    title="Archivar esta ruta (tienes 15 días para restaurarla)"
+                  >
+                    {archivando === rutaSeleccionada.id ? 'Archivando…' : 'Archivar'}
+                  </button>
                 </div>
 
-                {/* Botón flotante para alternar entre el sistema solar y el
-                    mapa de viaje, con animación de transición entre ambos. */}
-                <button
-                  type="button"
-                  className="btn-switch-vista"
-                  onClick={handleCambioVista}
-                  disabled={transicionando}
-                >
-                  {vista === 'solar' ? '🗺️ Ver como viaje' : '🌌 Ver sistema solar'}
-                </button>
-              </div>
+                <div className={`vista-container ${claseTransicion}`}>
+                  {/* SolarSystem y MapView permanecen siempre montados: se
+                      ocultan con display:none / visibility:hidden en lugar de
+                      desmontarse, para que el Canvas de Three.js no pierda
+                      su contexto WebGL ni sus dimensiones al alternar vista. */}
+                  <div style={{ display: vista === 'solar' ? 'block' : 'none' }}>
+                    <SolarSystem route={rutaSeleccionada} onStepSelect={handleStepSelect} />
+                  </div>
+                  <div style={{ visibility: vista === 'mapa' ? 'visible' : 'hidden', height: vista === 'mapa' ? 'auto' : '0', overflow: 'hidden', position: vista === 'mapa' ? 'relative' : 'absolute' }}>
+                    <MapView route={rutaSeleccionada} onBack={handleCambioVista} onStepSelect={handleStepSelect} visible={vista === 'mapa'} />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn-switch-vista"
+                    onClick={handleCambioVista}
+                    disabled={transicionando}
+                  >
+                    {vista === 'solar' ? '🗺️ Ver como viaje' : '🌌 Ver sistema solar'}
+                  </button>
+                </div>
+              </>
             )}
 
             {/* Tablero de progreso tipo Trello del step (planeta) seleccionado. */}
@@ -346,6 +434,74 @@ function Dashboard() {
                 por si se reutiliza en otro contexto. */}
           </>
         )}
+
+        {/* Sección colapsable: Rutas archivadas.
+            Carga con GET /routes?archivadas=true la primera vez que se abre.
+            Cada ruta archivada muestra cuántos días lleva archivada y un
+            botón "Restaurar" que la devuelve al carrusel activo. */}
+        <div className="dashboard__archivadas">
+          <button
+            type="button"
+            className="dashboard__archivadas-toggle"
+            onClick={handleExpandirArchivadas}
+          >
+            Rutas archivadas
+            {rutasArchivadas.length > 0 && (
+              <span className="badge-count">{rutasArchivadas.length}</span>
+            )}
+            <span>{archivadasVisible ? ' ▲' : ' ▼'}</span>
+          </button>
+
+          {archivadasVisible && (
+            <div className="archivadas-grid-wrapper">
+              {cargandoArchivadas ? (
+                <p>Cargando rutas archivadas…</p>
+              ) : rutasArchivadas.length === 0 ? (
+                <p className="archivadas-grid__vacio">No tienes rutas archivadas.</p>
+              ) : (
+                <div className="archivadas-grid">
+                  {rutasArchivadas.map((ruta) => {
+                    const diasArchivada = ruta.archivada_en
+                      ? Math.floor(
+                          (Date.now() - new Date(ruta.archivada_en).getTime()) / 86_400_000
+                        )
+                      : 0
+                    const diasRestantes = Math.max(0, 15 - diasArchivada)
+
+                    return (
+                      <div key={ruta.id} className="archivada-card">
+                        <div className="archivada-card__body">
+                          <p className="archivada-card__titulo">{ruta.titulo}</p>
+                          {ruta.destino_espacial && (
+                            <span className="archivada-card__badge">
+                              {ruta.destino_espacial}
+                            </span>
+                          )}
+                          <p className="archivada-card__meta">
+                            Archivada hace {diasArchivada} día{diasArchivada !== 1 ? 's' : ''}
+                          </p>
+                          {diasRestantes <= 5 && (
+                            <p className="archivada-card__alerta">
+                              Se eliminará en {diasRestantes} día{diasRestantes !== 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-secondary archivada-card__restaurar"
+                          onClick={() => handleRestaurar(ruta.id)}
+                          disabled={restaurando === ruta.id}
+                        >
+                          {restaurando === ruta.id ? 'Restaurando…' : 'Restaurar'}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   )

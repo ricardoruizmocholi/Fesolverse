@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BlockedIp;
 use App\Models\Route;
 use App\Models\User;
+use App\Services\ArchivoRutasService;
 use Illuminate\Http\Request;
 
 /**
@@ -234,19 +235,41 @@ class AdminController extends Controller
      *
      * Qué hace: devuelve las rutas (20 por página, de más reciente a más
      * antigua) junto con el nombre y email del usuario al que pertenecen.
+     * Con ?archivadas=true devuelve solo las archivadas, incluyendo
+     * "dias_restantes" (días que le quedan antes de eliminarse automáticamente).
      *
      * Por qué existe: alimenta la sección "Rutas" del panel de
      * administración, donde un administrador puede revisar y moderar las
      * rutas generadas por cualquier usuario.
      *
-     * Recibe: nada.
+     * Recibe: Request, opcionalmente con "archivadas" (bool).
      * Devuelve: JSON con el listado paginado de rutas (200).
      */
-    public function routes()
+    public function routes(Request $request)
     {
+        $soloArchivadas = $request->boolean('archivadas', false);
+
         $rutas = Route::with('user:id,name,email')
+            ->where('archivada', $soloArchivadas)
             ->orderBy('created_at', 'desc')
             ->paginate(self::POR_PAGINA);
+
+        // Añade "dias_restantes" a cada ruta archivada: días que le quedan
+        // antes de que el scheduler la elimine automáticamente (máx 15).
+        $rutas->through(function (Route $ruta) {
+            if ($ruta->archivada && $ruta->archivada_en) {
+                $diasTranscurridos = (int) now()->startOfDay()
+                    ->diffInDays($ruta->archivada_en->startOfDay());
+                $ruta->dias_restantes = max(
+                    0,
+                    ArchivoRutasService::DIAS_HASTA_ELIMINACION - $diasTranscurridos
+                );
+            } else {
+                $ruta->dias_restantes = null;
+            }
+
+            return $ruta;
+        });
 
         return response()->json([
             'success' => true,
@@ -254,6 +277,31 @@ class AdminController extends Controller
                 'routes' => $rutas,
             ],
             'message' => 'Rutas obtenidas correctamente.',
+        ]);
+    }
+
+    /**
+     * Archiva una ruta de cualquier usuario (solo admin).
+     *
+     * Qué hace: marca la ruta como archivada sin comprobar ownership, ya que
+     * el middleware "admin" garantiza que el llamante es un administrador.
+     * Tiene el mismo efecto que RouteController@archive pero sin restricción
+     * de propietario.
+     *
+     * Recibe: la ruta a archivar (route model binding).
+     * Devuelve: JSON con la ruta actualizada (200).
+     */
+    public function archiveRoute(Route $route)
+    {
+        $route->update([
+            'archivada'    => true,
+            'archivada_en' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['route' => $route],
+            'message' => 'Ruta archivada correctamente.',
         ]);
     }
 
@@ -278,6 +326,30 @@ class AdminController extends Controller
             'success' => true,
             'data' => [],
             'message' => 'Ruta eliminada correctamente.',
+        ]);
+    }
+
+    /**
+     * Endpoint de emergencia: elimina manualmente las rutas archivadas caducadas.
+     *
+     * Qué hace: ejecuta la misma lógica que el comando Artisan
+     * "rutas:limpiar-archivadas" a través de ArchivoRutasService, de modo
+     * que el administrador puede forzar la limpieza sin esperar al scheduler.
+     *
+     * Por qué existe: útil si el scheduler falla o el admin quiere liberar
+     * espacio de forma inmediata desde el panel.
+     *
+     * Recibe: nada.
+     * Devuelve: JSON con el número de rutas eliminadas (200).
+     */
+    public function limpiarArchivadasCaducadas()
+    {
+        $eliminadas = ArchivoRutasService::eliminarCaducadas();
+
+        return response()->json([
+            'success' => true,
+            'data' => ['eliminadas' => $eliminadas],
+            'message' => "Se han eliminado {$eliminadas} ruta(s) archivada(s) caducada(s).",
         ]);
     }
 }

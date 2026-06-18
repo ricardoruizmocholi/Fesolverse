@@ -40,10 +40,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 
     // --- Generador de rutas con IA ---
+    // GET ?archivadas=true devuelve solo las rutas archivadas del usuario.
     Route::get('/routes', [RouteController::class, 'index']);
     Route::post('/routes/generate', [RouteController::class, 'generate']);
     Route::get('/routes/{route}', [RouteController::class, 'show']);
     Route::delete('/routes/{route}', [RouteController::class, 'destroy']);
+    // Archivado de rutas: archive marca la ruta como archivada; unarchive la restaura.
+    Route::post('/routes/{route}/archive', [RouteController::class, 'archive']);
+    Route::post('/routes/{route}/unarchive', [RouteController::class, 'unarchive']);
 
     // --- Tablero de progreso tipo Trello (Fase 5) ---
     Route::get('/steps/{step}/tasks', [TaskController::class, 'index']);
@@ -72,7 +76,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users/{user}/unblock', [AdminController::class, 'unblockUser']);
         Route::get('/blocked-ips', [AdminController::class, 'blockedIps']);
         Route::delete('/blocked-ips/{blockedIp}', [AdminController::class, 'unblockIp']);
+        // GET ?archivadas=true devuelve solo rutas archivadas con "dias_restantes".
         Route::get('/routes', [AdminController::class, 'routes']);
         Route::delete('/routes/{route}', [AdminController::class, 'deleteRoute']);
+        // Archiva cualquier ruta (sin restricción de propietario).
+        Route::post('/routes/{route}/archive', [AdminController::class, 'archiveRoute']);
+        // Limpieza manual de emergencia: elimina las archivadas caducadas ahora.
+        Route::post('/routes/limpiar-caducadas', [AdminController::class, 'limpiarArchivadasCaducadas']);
     });
 });

@@ -43,9 +43,14 @@ class RouteController extends Controller
      */
     public function index(Request $request)
     {
+        // Con ?archivadas=true devuelve solo las archivadas; por defecto,
+        // solo las activas (archivada = false).
+        $soloArchivadas = $request->boolean('archivadas', false);
+
         $rutas = $request->user()
             ->routes()
             ->with('steps.tasks')
+            ->where('archivada', $soloArchivadas)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -222,6 +227,70 @@ class RouteController extends Controller
                 'route' => $route->load('steps.tasks'),
             ],
             'message' => 'Ruta obtenida correctamente.',
+        ]);
+    }
+
+    /**
+     * Archiva una ruta del usuario autenticado.
+     *
+     * Qué hace: marca la ruta como archivada (archivada = true,
+     * archivada_en = ahora). Las rutas archivadas se ocultan del Dashboard
+     * principal y se muestran en la sección "Rutas archivadas". Si no se
+     * restauran en 15 días, el comando Artisan las elimina automáticamente.
+     *
+     * Recibe: Request autenticado y la ruta (route model binding).
+     * Devuelve: JSON con la ruta actualizada (200), o 403 si no pertenece al usuario.
+     */
+    public function archive(Request $request, Route $route)
+    {
+        if ($route->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'data' => [],
+                'message' => 'No tienes permiso para archivar esta ruta.',
+            ], 403);
+        }
+
+        $route->update([
+            'archivada'    => true,
+            'archivada_en' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['route' => $route],
+            'message' => 'Ruta archivada correctamente.',
+        ]);
+    }
+
+    /**
+     * Restaura una ruta archivada del usuario autenticado.
+     *
+     * Qué hace: desmarca la ruta como archivada (archivada = false,
+     * archivada_en = null) para que vuelva a aparecer en el Dashboard.
+     *
+     * Recibe: Request autenticado y la ruta (route model binding).
+     * Devuelve: JSON con la ruta actualizada (200), o 403 si no pertenece al usuario.
+     */
+    public function unarchive(Request $request, Route $route)
+    {
+        if ($route->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'data' => [],
+                'message' => 'No tienes permiso para restaurar esta ruta.',
+            ], 403);
+        }
+
+        $route->update([
+            'archivada'    => false,
+            'archivada_en' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['route' => $route],
+            'message' => 'Ruta restaurada correctamente.',
         ]);
     }
 
