@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlockedIp;
+use App\Models\Payment;
 use App\Models\Route;
 use App\Models\User;
 use App\Services\ArchivoRutasService;
@@ -350,6 +351,67 @@ class AdminController extends Controller
             'success' => true,
             'data' => ['eliminadas' => $eliminadas],
             'message' => "Se han eliminado {$eliminadas} ruta(s) archivada(s) caducada(s).",
+        ]);
+    }
+
+    /**
+     * Lista paginada de todos los pagos de todos los usuarios con estadísticas.
+     *
+     * Qué hace: devuelve los pagos (20 por página, de más reciente a más
+     * antiguo) junto con el nombre y email del usuario que los realizó.
+     * Acepta filtros opcionales por estado (?estado=completed|pending|failed)
+     * y por nombre/email del usuario (?busqueda=...).
+     * Incluye además estadísticas globales: total recaudado (en euros, solo
+     * pagos completed), total de pagos, pagos completados y pagos fallidos.
+     *
+     * Por qué existe: alimenta la sección "Pagos" del panel de
+     * administración, donde un administrador puede supervisar la actividad
+     * económica de la plataforma.
+     *
+     * Recibe: Request, opcionalmente con "estado" y "busqueda".
+     * Devuelve: JSON con el listado paginado de pagos y las estadísticas (200).
+     */
+    public function payments(Request $request)
+    {
+        $consulta = Payment::with('user:id,name,email');
+
+        $estado = $request->input('estado');
+
+        if (!empty($estado)) {
+            $consulta->where('estado', $estado);
+        }
+
+        $busqueda = $request->input('busqueda');
+
+        if (!empty($busqueda)) {
+            $consulta->whereHas('user', function ($query) use ($busqueda) {
+                $query->where('name', 'like', "%{$busqueda}%")
+                    ->orWhere('email', 'like', "%{$busqueda}%");
+            });
+        }
+
+        $pagos = $consulta->orderBy('created_at', 'desc')
+            ->paginate(self::POR_PAGINA);
+
+        // Estadísticas globales (sin filtros, sobre TODOS los pagos).
+        // amount se guarda en céntimos; dividimos entre 100 para devolver euros.
+        $totalRecaudado = Payment::where('estado', 'completed')->sum('amount') / 100;
+        $totalPagos     = Payment::count();
+        $completados    = Payment::where('estado', 'completed')->count();
+        $fallidos       = Payment::where('estado', 'failed')->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'payments' => $pagos,
+                'stats' => [
+                    'total_recaudado'  => $totalRecaudado,
+                    'total_pagos'      => $totalPagos,
+                    'pagos_completados' => $completados,
+                    'pagos_fallidos'   => $fallidos,
+                ],
+            ],
+            'message' => 'Pagos obtenidos correctamente.',
         ]);
     }
 }

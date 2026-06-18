@@ -5,6 +5,7 @@ import AdminDashboard from '../components/admin/AdminDashboard'
 import AdminUsers from '../components/admin/AdminUsers'
 import AdminBlockedIps from '../components/admin/AdminBlockedIps'
 import AdminRoutes from '../components/admin/AdminRoutes'
+import AdminPayments from '../components/admin/AdminPayments'
 
 // Secciones disponibles en la navegación lateral del panel de admin, junto
 // con el componente que muestra cada una.
@@ -13,6 +14,7 @@ const SECCIONES = [
   { id: 'usuarios', titulo: 'Usuarios', Componente: AdminUsers },
   { id: 'ips', titulo: 'IPs Bloqueadas', Componente: AdminBlockedIps },
   { id: 'rutas', titulo: 'Rutas', Componente: AdminRoutes },
+  { id: 'pagos', titulo: 'Pagos', Componente: AdminPayments },
 ]
 
 // AdminPanel

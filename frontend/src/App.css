@@ -2828,3 +2828,95 @@ html {
 .cal-modal__google-row {
   margin-top: 0.75rem;
 }
+
+
+/* ===================================================================
+   === ADMIN PAYMENTS ===
+   =================================================================== */
+
+/* Contenedor de filtros: buscador + selector de estado en una fila */
+.admin-payments__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.admin-payments__filtros .admin-buscador {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Grupo de botones de filtro de estado (reutiliza .admin-tab) */
+.admin-payments__estado-filtro {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Badge de estado en la tabla */
+.admin-payments__badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-payments__badge--verde {
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+}
+
+.admin-payments__badge--amarillo {
+  background: rgba(234, 179, 8, 0.18);
+  color: #eab308;
+}
+
+.admin-payments__badge--rojo {
+  background: rgba(248, 113, 113, 0.18);
+  color: #f87171;
+}
+
+/* Colores de las tarjetas de stats */
+.admin-payments__recaudado {
+  color: #22c55e;
+}
+
+.admin-payments__completados {
+  color: #22c55e;
+}
+
+.admin-payments__fallidos {
+  color: #f87171;
+}
+
+/* ID de transacción truncado con cursor de ayuda para el tooltip nativo */
+.admin-payments__txid {
+  font-family: monospace;
+  font-size: 0.8rem;
+  cursor: help;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive: apila filtros en vertical en pantallas pequeñas */
+@media (max-width: 700px) {
+  .admin-payments__filtros {
+    flex-direction: column;
+  }
+
+  .admin-payments__estado-filtro {
+    flex-wrap: wrap;
+    border-radius: var(--radius-md, 8px);
+  }
+}

@@ -83,5 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/routes/{route}/archive', [AdminController::class, 'archiveRoute']);
         // Limpieza manual de emergencia: elimina las archivadas caducadas ahora.
         Route::post('/routes/limpiar-caducadas', [AdminController::class, 'limpiarArchivadasCaducadas']);
+        // Historial de pagos de todos los usuarios con estadísticas.
+        Route::get('/payments', [AdminController::class, 'payments']);
     });
 });
