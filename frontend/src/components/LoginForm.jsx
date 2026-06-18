@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 // LoginForm
@@ -18,6 +18,9 @@ function LoginForm() {
 
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Mensaje inyectado por ResetPasswordPage tras un reset exitoso.
+  const mensajeExito = location.state?.mensaje || ''
 
   // handleSubmit
   // Qué hace: evita el envío normal del formulario, llama a login() del
@@ -67,6 +70,7 @@ function LoginForm() {
 
           <h2>Iniciar sesión</h2>
 
+          {mensajeExito && <p className="profile-card__exito">{mensajeExito}</p>}
           {error && <p role="alert" className="form-error">{error}</p>}
 
           <div className="field">
@@ -96,6 +100,10 @@ function LoginForm() {
           <button type="submit" className="btn-primary login-card__submit" disabled={enviando}>
             {enviando ? 'Entrando...' : 'Entrar'}
           </button>
+
+          <p className="login-card__forgot">
+            <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+          </p>
 
           <p className="login-card__switch">
             ¿No tienes cuenta? <Link to="/register">Regístrate</Link>

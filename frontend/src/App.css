@@ -2920,3 +2920,168 @@ html {
     border-radius: var(--radius-md, 8px);
   }
 }
+
+
+/* ===================================================================
+   === PROFILE PAGE ===
+   =================================================================== */
+
+.profile-page {
+  padding: 2rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.profile-page__titulo {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  margin-bottom: 1.25rem;
+}
+
+/* Tabs de perfil */
+.profile-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 9999px;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-tabs__btn {
+  border-radius: 9999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.profile-tabs__btn--activo {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* Card glassmorphism del contenido de cada tab */
+.profile-card {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+}
+
+.profile-card__titulo {
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  margin-bottom: 1.25rem;
+}
+
+.profile-card__exito {
+  color: #22c55e;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Info de solo lectura */
+.profile-card__readonly {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-card__dato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-card__dato-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* Badge de plan inline junto al nombre en Dashboard */
+.plan-badge--inline {
+  font-size: 0.65rem;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.55rem;
+}
+
+/* Estado vacío del tab de pagos */
+.profile-card__vacio {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.profile-card__cta-texto {
+  color: var(--color-text-muted);
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+/* Tabla de pagos del perfil (reutiliza admin-tabla base) */
+.profile-pagos__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.profile-pagos__tabla th,
+.profile-pagos__tabla td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.profile-pagos__tabla th {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Link "¿Olvidaste tu contraseña?" en la card de login */
+.login-card__forgot {
+  text-align: right;
+  margin: -0.25rem 0 0.75rem;
+  font-size: 0.82rem;
+}
+
+.login-card__forgot a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.login-card__forgot a:hover {
+  color: var(--color-accent);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 1rem;
+  }
+
+  .profile-card {
+    padding: 1.25rem;
+  }
+
+  .profile-tabs {
+    border-radius: var(--radius-md, 8px);
+    flex-wrap: wrap;
+  }
+}

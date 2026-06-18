@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -261,5 +262,191 @@ class AuthController extends Controller
             'data' => [],
             'message' => 'Se ha reenviado el correo de verificación.',
         ]);
+    }
+
+    /**
+     * Actualiza el nombre y/o email del usuario autenticado.
+     *
+     * Qué hace: valida y actualiza los campos "name" y "email". Si el email
+     * cambia, resetea email_verified_at a null y envía un nuevo correo de
+     * verificación al nuevo email.
+     *
+     * Recibe: Request con "name" y "email".
+     * Devuelve: JSON con el usuario actualizado (200) o errores de
+     * validación (422). Si el email cambió, incluye "email_cambiado: true".
+     */
+    public function updateProfile(Request $request)
+    {
+        $usuario = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'data' => $validator->errors(),
+                'message' => 'Los datos enviados no son válidos.',
+            ], 422);
+        }
+
+        $emailCambiado = $usuario->email !== $request->input('email');
+
+        $usuario->update([
+            'name'  => $request->input('name'),
+            'email' => $request->input('email'),
+        ]);
+
+        if ($emailCambiado) {
+            $usuario->email_verified_at = null;
+            $usuario->save();
+            $usuario->sendEmailVerificationNotification();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $usuario,
+                'email_cambiado' => $emailCambiado,
+            ],
+            'message' => $emailCambiado
+                ? 'Perfil actualizado. Deberás verificar tu nuevo email.'
+                : 'Perfil actualizado correctamente.',
+        ]);
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     *
+     * Qué hace: verifica que la contraseña actual sea correcta y, si lo es,
+     * la reemplaza por la nueva.
+     *
+     * Recibe: Request con "current_password", "new_password" y
+     * "new_password_confirmation".
+     * Devuelve: JSON de éxito (200) o errores de validación (422).
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => ['required', 'string'],
+            'new_password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'data' => $validator->errors(),
+                'message' => 'Los datos enviados no son válidos.',
+            ], 422);
+        }
+
+        $usuario = $request->user();
+
+        if (! Hash::check($request->input('current_password'), $usuario->password)) {
+            return response()->json([
+                'success' => false,
+                'data' => ['current_password' => ['La contraseña actual no es correcta.']],
+                'message' => 'La contraseña actual no es correcta.',
+            ], 422);
+        }
+
+        $usuario->update([
+            'password' => Hash::make($request->input('new_password')),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [],
+            'message' => 'Contraseña actualizada correctamente.',
+        ]);
+    }
+
+    /**
+     * Envía un email de recuperación de contraseña.
+     *
+     * Qué hace: recibe un email y, si existe en la base de datos, le envía
+     * un enlace de reset. Si no existe, devuelve el mismo mensaje de éxito
+     * por seguridad (no revelamos si el email está registrado o no).
+     *
+     * En desarrollo (MAIL_MAILER=log), el email con el token se escribe en
+     * storage/logs/laravel.log.
+     *
+     * Recibe: Request con "email".
+     * Devuelve: JSON de éxito (200) o error de validación (422).
+     */
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'string', 'email'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'data' => $validator->errors(),
+                'message' => 'Los datos enviados no son válidos.',
+            ], 422);
+        }
+
+        Password::sendResetLink(['email' => $request->input('email')]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [],
+            'message' => 'Si ese email está registrado, recibirás un enlace de recuperación.',
+        ]);
+    }
+
+    /**
+     * Restablece la contraseña usando el token del email de recuperación.
+     *
+     * Qué hace: verifica el token recibido y, si es válido, actualiza la
+     * contraseña del usuario.
+     *
+     * Recibe: Request con "token", "email", "password" y
+     * "password_confirmation".
+     * Devuelve: JSON de éxito (200) o error si el token es inválido/
+     * expirado (422).
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'data' => $validator->errors(),
+                'message' => 'Los datos enviados no son válidos.',
+            ], 422);
+        }
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+                'message' => 'Contraseña actualizada correctamente.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'data' => [],
+            'message' => 'El enlace de recuperación no es válido o ha expirado.',
+        ], 422);
     }
 }

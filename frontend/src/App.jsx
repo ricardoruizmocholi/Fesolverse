@@ -9,6 +9,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import AdminPanel from './pages/AdminPanel'
 import CalendarPage from './pages/CalendarPage'
+import ProfilePage from './pages/ProfilePage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import { useAuth } from './context/AuthContext'
 import useTheme from './hooks/useTheme'
 
@@ -47,6 +50,8 @@ function App() {
               {' | '}
               <Link className="navbar__link" to="/calendario">Calendario</Link>
               {' | '}
+              <Link className="navbar__link" to="/perfil">Mi perfil</Link>
+              {' | '}
               {user.role === 'admin' && (
                 <>
                   <Link className="navbar__link" to="/admin">Admin</Link>
@@ -72,11 +77,21 @@ function App() {
           <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

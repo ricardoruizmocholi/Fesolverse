@@ -85,7 +85,7 @@ function generarContenidoIcs(tasks) {
 // estado local; las vistas Mes y Sprint filtran/agrupan estas tasks en
 // memoria para no hacer peticiones adicionales al cambiar de mes o semana.
 // Permite:
-//   - Alternar entre vista Mes (📅) y vista Sprint semanal (📋).
+//   - Alternar entre vista Mes () y vista Sprint semanal ().
 //   - Abrir el TaskDetailModal al hacer clic en una task.
 //   - Actualizar la fecha_limite de una task con actualización optimista:
 //     se cambia el estado local inmediatamente y se llama a
@@ -209,14 +209,14 @@ function CalendarPage() {
               className={`cal-toggle__btn${vista === 'mes' ? ' cal-toggle__btn--activo' : ''}`}
               onClick={() => setVista('mes')}
             >
-              📅 Mes
+               Mes
             </button>
             <button
               type="button"
               className={`cal-toggle__btn${vista === 'semana' ? ' cal-toggle__btn--activo' : ''}`}
               onClick={() => setVista('semana')}
             >
-              📋 Sprint semanal
+               Semana
             </button>
           </div>
         </div>

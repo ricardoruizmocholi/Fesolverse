@@ -7,7 +7,9 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -105,5 +107,41 @@ class User extends Authenticatable implements MustVerifyEmail
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Envía la notificación de reset de contraseña con una URL que apunta
+     * al frontend (SPA en localhost:5173) en lugar de al backend.
+     *
+     * Por qué se sobreescribe: el ResetPassword por defecto genera una URL
+     * del backend de Laravel, pero en una SPA el formulario de reset vive
+     * en el frontend. El token y el email se pasan como query params.
+     *
+     * @param string $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = 'http://localhost:5173/reset-password?token=' . $token
+            . '&email=' . urlencode($this->getEmailForPasswordReset());
+
+        $this->notify(new class($url) extends Notification {
+            public function __construct(private string $url) {}
+
+            /** @return string[] */
+            public function via(object $notifiable): array
+            {
+                return ['mail'];
+            }
+
+            public function toMail(object $notifiable): MailMessage
+            {
+                return (new MailMessage)
+                    ->subject('Restablecer contraseña — Fesolverse')
+                    ->line('Has solicitado restablecer tu contraseña.')
+                    ->action('Restablecer contraseña', $this->url)
+                    ->line('Este enlace expirará en 60 minutos.')
+                    ->line('Si no has solicitado este cambio, ignora este mensaje.');
+            }
+        });
     }
 }

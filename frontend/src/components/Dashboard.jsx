@@ -6,8 +6,6 @@ import SolarSystem from './SolarSystem'
 import MapView from './MapView'
 import StepProgress from './StepProgress'
 import TrelloBoard from './TrelloBoard'
-import UpgradePlan from './UpgradePlan'
-import PaymentHistory from './PaymentHistory'
 import { BlossomCarousel } from '@blossom-carousel/react'
 import '@blossom-carousel/core/style.css'
 
@@ -284,26 +282,14 @@ function Dashboard() {
     <div className="dashboard">
       {user && (
         <div className="dashboard__welcome">
-          <h2 className="dashboard__username">Bienvenido, {user.name}</h2>
-          <p className="dashboard__email">Email: {user.email}</p>
-          <p className={`plan-badge plan-badge--${user.plan}`}>Plan: {user.plan}</p>
-          <p className="dashboard__tokens">Tokens usados: {user.tokens_usados}</p>
-          <button className="btn-secondary" onClick={logout}>Cerrar sesión</button>
+          <h2 className="dashboard__username">
+            Bienvenido, {user.name}
+            <span className={`plan-badge plan-badge--${user.plan} plan-badge--inline`}>
+              {user.plan}
+            </span>
+          </h2>
         </div>
       )}
-
-      {/* Sección de plan y pagos (Fase 7) */}
-      <section className="dashboard__plan-section">
-        {user?.plan === 'free' ? (
-          <UpgradePlan />
-        ) : user?.plan === 'pro' ? (
-          <>
-            <p className="plan-pro-badge">Plan Pro ✓</p>
-            <h3>Historial de pagos</h3>
-            <PaymentHistory />
-          </>
-        ) : null}
-      </section>
 
       <section className="dashboard__generator">
         <button className="btn-secondary dashboard__generator-toggle" onClick={() => setGeneradorVisible((visible) => !visible)}>
@@ -413,7 +399,7 @@ function Dashboard() {
                     onClick={handleCambioVista}
                     disabled={transicionando}
                   >
-                    {vista === 'solar' ? '🗺️ Ver como viaje' : '🌌 Ver sistema solar'}
+                    {vista === 'solar' ? ' Ver como viaje' : ' Ver sistema solar'}
                   </button>
                 </div>
               </>

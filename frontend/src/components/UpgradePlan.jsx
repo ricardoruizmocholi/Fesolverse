@@ -172,7 +172,7 @@ function UpgradePlan() {
   if (completado) {
     return (
       <div className="upgrade-plan upgrade-plan--exito">
-        <h3>¡Bienvenido al plan Pro! 🚀</h3>
+        <h3>¡Bienvenido al plan Pro! </h3>
         <p>Ya tienes rutas ilimitadas. Gracias por tu apoyo a Fesolverse.</p>
       </div>
     )

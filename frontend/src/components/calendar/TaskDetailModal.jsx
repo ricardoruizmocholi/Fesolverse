@@ -123,12 +123,12 @@ function TaskDetailModal({ task, onClose, onFechaChange }) {
         <div className="cal-modal__badges">
           {task.route && (
             <span className="cal-badge cal-badge--ruta" title={task.route.titulo}>
-              🛸 {task.route.titulo}
+               {task.route.titulo}
             </span>
           )}
           {task.step && (
             <span className="cal-badge cal-badge--step">
-              🪐 Paso {task.step.orden}: {task.step.titulo}
+               Paso {task.step.orden}: {task.step.titulo}
             </span>
           )}
           <span className={`cal-badge cal-badge--${estado.mod}`}>
