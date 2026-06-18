@@ -4,6 +4,81 @@ import CalendarMonthView from '../components/calendar/CalendarMonthView'
 import CalendarWeekView from '../components/calendar/CalendarWeekView'
 import TaskDetailModal from '../components/calendar/TaskDetailModal'
 
+// escaparIcs
+// Escapa caracteres especiales en valores de texto iCalendar (RFC 5545):
+// backslash → \\, punto y coma → \;, coma → \,.
+function escaparIcs(texto) {
+  return texto
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+}
+
+// fechaAFormatoIcs
+// Convierte "2026-06-20" o "2026-06-20T00:00:00Z" a "20260620".
+function fechaAFormatoIcs(fechaStr) {
+  return String(fechaStr).slice(0, 10).replace(/-/g, '')
+}
+
+// fechaSiguienteIcs
+// Devuelve el día siguiente en formato YYYYMMDD. Usa Date.UTC para evitar
+// desplazamientos por zona horaria local.
+function fechaSiguienteIcs(fechaStr) {
+  const [y, m, d] = String(fechaStr).slice(0, 10).split('-').map(Number)
+  const siguiente = new Date(Date.UTC(y, m - 1, d + 1))
+  return [
+    siguiente.getUTCFullYear(),
+    String(siguiente.getUTCMonth() + 1).padStart(2, '0'),
+    String(siguiente.getUTCDate()).padStart(2, '0'),
+  ].join('')
+}
+
+// generarContenidoIcs
+// Genera el contenido completo de un archivo .ics (iCalendar RFC 5545) a
+// partir de un array de tasks con fecha_limite. Cada task se convierte en un
+// VEVENT de un día completo. Compatible con Google Calendar, Apple Calendar
+// y Outlook.
+function generarContenidoIcs(tasks) {
+  const lineas = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Fesolverse//ES',
+    'X-WR-CALNAME:Fesolverse - Mi Plan',
+    'X-WR-TIMEZONE:Europe/Madrid',
+  ]
+
+  for (const task of tasks) {
+    if (!task.fecha_limite) continue
+
+    const inicio = fechaAFormatoIcs(task.fecha_limite)
+    const fin = fechaSiguienteIcs(task.fecha_limite)
+
+    const partes = [
+      task.route ? `Ruta: ${task.route.titulo}` : '',
+      task.step ? `Paso: ${task.step.titulo}` : '',
+      task.descripcion || '',
+    ].filter(Boolean)
+
+    // Cada parte se escapa individualmente; se unen con \\n (representación
+    // ICS de un salto de línea dentro de un valor de texto).
+    const descripcion = partes.map(escaparIcs).join('\\n')
+
+    lineas.push(
+      'BEGIN:VEVENT',
+      `UID:${task.id}@fesolverse`,
+      `DTSTART;VALUE=DATE:${inicio}`,
+      `DTEND;VALUE=DATE:${fin}`,
+      `SUMMARY:${escaparIcs(task.titulo)}`,
+      `DESCRIPTION:${descripcion}`,
+      `STATUS:${task.estado === 'completada' ? 'COMPLETED' : 'NEEDS-ACTION'}`,
+      'END:VEVENT',
+    )
+  }
+
+  lineas.push('END:VCALENDAR')
+  return lineas.join('\r\n')
+}
+
 // CalendarPage
 // Qué hace: página del Calendario centralizado. Carga TODAS las tasks del
 // usuario (GET /calendar/tasks) una sola vez al montar y las guarda en
@@ -82,6 +157,30 @@ function CalendarPage() {
     }
   }
 
+  // handleExportarIcs
+  // Genera un archivo .ics con todas las tasks que tienen fecha_limite y lo
+  // descarga automáticamente. La generación es 100% client-side con Blob +
+  // URL.createObjectURL, sin llamadas al backend.
+  const handleExportarIcs = () => {
+    const conFecha = tasks.filter((t) => t.fecha_limite)
+
+    if (conFecha.length === 0) {
+      alert('No tienes tareas con fechas asignadas para exportar.')
+      return
+    }
+
+    const contenido = generarContenidoIcs(conFecha)
+    const blob = new Blob([contenido], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const enlace = document.createElement('a')
+    enlace.href = url
+    enlace.download = `fesolverse-calendario-${new Date().toISOString().slice(0, 10)}.ics`
+    document.body.appendChild(enlace)
+    enlace.click()
+    document.body.removeChild(enlace)
+    URL.revokeObjectURL(url)
+  }
+
   // Número de tasks con fecha_limite asignada (para el mensaje vacío).
   const tasksConFecha = tasks.filter((t) => t.fecha_limite)
 
@@ -90,22 +189,36 @@ function CalendarPage() {
       <div className="cal-page__cabecera">
         <h1 className="cal-page__titulo">Calendario</h1>
 
-        {/* Toggle de vista: Mes / Sprint semanal */}
-        <div className="cal-toggle">
+        <div className="cal-page__acciones">
+          {/* Botón de exportación .ics: descarga un archivo compatible con
+              Google Calendar, Apple Calendar y Outlook con todas las tasks
+              que tienen fecha_limite asignada. */}
           <button
             type="button"
-            className={`cal-toggle__btn${vista === 'mes' ? ' cal-toggle__btn--activo' : ''}`}
-            onClick={() => setVista('mes')}
+            className="cal-export-btn cal-export-btn--ics"
+            onClick={handleExportarIcs}
+            disabled={cargando}
           >
-            📅 Mes
+            Exportar calendario (.ics)
           </button>
-          <button
-            type="button"
-            className={`cal-toggle__btn${vista === 'semana' ? ' cal-toggle__btn--activo' : ''}`}
-            onClick={() => setVista('semana')}
-          >
-            📋 Sprint semanal
-          </button>
+
+          {/* Toggle de vista: Mes / Sprint semanal */}
+          <div className="cal-toggle">
+            <button
+              type="button"
+              className={`cal-toggle__btn${vista === 'mes' ? ' cal-toggle__btn--activo' : ''}`}
+              onClick={() => setVista('mes')}
+            >
+              📅 Mes
+            </button>
+            <button
+              type="button"
+              className={`cal-toggle__btn${vista === 'semana' ? ' cal-toggle__btn--activo' : ''}`}
+              onClick={() => setVista('semana')}
+            >
+              📋 Sprint semanal
+            </button>
+          </div>
         </div>
       </div>
 

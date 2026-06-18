@@ -2754,3 +2754,77 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===================================================================
+   === EXPORTAR CALENDARIO ===
+   =================================================================== */
+
+/* Contenedor para agrupar el botón de exportar .ics y el toggle de vista
+   en la cabecera de CalendarPage. */
+.cal-page__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Base compartida: pill pequeño para los botones de exportación. */
+.cal-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), filter var(--transition),
+              border-color var(--transition), color var(--transition);
+}
+
+/* Variante Google Calendar: borde y texto cyan */
+.cal-export-btn--google {
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  background: transparent;
+}
+
+.cal-export-btn--google:hover {
+  background: rgba(56, 189, 248, 0.1);
+  backdrop-filter: var(--blur);
+  filter: brightness(1.2);
+}
+
+/* Estado deshabilitado (sin fecha asignada) */
+.cal-export-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Variante exportar .ics: glassmorphism */
+.cal-export-btn--ics {
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text);
+  background: var(--color-glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+}
+
+.cal-export-btn--ics:hover:not(:disabled) {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  filter: brightness(1.2);
+}
+
+.cal-export-btn--ics:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fila del botón Google Calendar dentro del TaskDetailModal */
+.cal-modal__google-row {
+  margin-top: 0.75rem;
+}

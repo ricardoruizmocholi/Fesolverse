@@ -1,5 +1,48 @@
 import { useState } from 'react'
 
+// fechaAFormatoIcs
+// Convierte "2026-06-20" o "2026-06-20T00:00:00Z" a "20260620".
+function fechaAFormatoIcs(fechaStr) {
+  return String(fechaStr).slice(0, 10).replace(/-/g, '')
+}
+
+// fechaSiguienteIcs
+// Devuelve el día siguiente en formato YYYYMMDD. Usa Date.UTC para evitar
+// desplazamientos por zona horaria local.
+function fechaSiguienteIcs(fechaStr) {
+  const [y, m, d] = String(fechaStr).slice(0, 10).split('-').map(Number)
+  const siguiente = new Date(Date.UTC(y, m - 1, d + 1))
+  return [
+    siguiente.getUTCFullYear(),
+    String(siguiente.getUTCMonth() + 1).padStart(2, '0'),
+    String(siguiente.getUTCDate()).padStart(2, '0'),
+  ].join('')
+}
+
+// generarUrlGoogleCalendar
+// Genera una URL para crear un evento de un día completo en Google Calendar.
+// No usa API keys ni OAuth: abre el formulario prellenado en una pestaña nueva.
+function generarUrlGoogleCalendar(task) {
+  const inicio = fechaAFormatoIcs(task.fecha_limite)
+  const fin = fechaSiguienteIcs(task.fecha_limite)
+
+  const detalles = [
+    task.descripcion || '',
+    task.route ? `Ruta: ${task.route.titulo}` : '',
+    task.step ? `Paso: ${task.step.titulo}` : '',
+  ].filter(Boolean).join('\n')
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: task.titulo,
+    dates: `${inicio}/${fin}`,
+    details: detalles,
+    location: 'Fesolverse',
+  })
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
 // ETIQUETA_ESTADO
 // Mapea el valor del campo "estado" a la etiqueta legible y al modificador
 // CSS del badge de color.
@@ -128,6 +171,28 @@ function TaskDetailModal({ task, onClose, onFechaChange }) {
             >
               {guardando ? 'Guardando…' : 'Guardar fecha'}
             </button>
+          </div>
+
+          {/* Botón para añadir la tarea a Google Calendar. Si no tiene
+              fecha_limite guardada, se muestra deshabilitado con tooltip. */}
+          <div className="cal-modal__google-row">
+            {task.fecha_limite ? (
+              <a
+                href={generarUrlGoogleCalendar(task)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cal-export-btn cal-export-btn--google"
+              >
+                Google Calendar
+              </a>
+            ) : (
+              <span
+                className="cal-export-btn cal-export-btn--google cal-export-btn--disabled"
+                title="Asigna una fecha límite primero"
+              >
+                Google Calendar
+              </span>
+            )}
           </div>
         </section>
       </div>
