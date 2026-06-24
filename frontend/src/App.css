@@ -1421,6 +1421,26 @@ body.modo-mapa .star-field {
   background: rgba(34, 197, 94, 0.22);
 }
 
+.admin-tabla__accion--plan-pro {
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--color-accent);
+}
+
+.admin-tabla__accion--plan-pro:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.22);
+}
+
+.admin-tabla__accion--plan-free {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+}
+
+.admin-tabla__accion--plan-free:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.2);
+}
+
 .admin-paginacion {
   display: flex;
   align-items: center;
@@ -3083,5 +3103,301 @@ html {
   .profile-tabs {
     border-radius: var(--radius-md, 8px);
     flex-wrap: wrap;
+  }
+}
+
+
+/* ===================================================================
+   === LANDING — SECCIÓN CALENDARIO ===
+   =================================================================== */
+
+.landing-calendar {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+
+.landing-calendar__text {
+  flex: 1;
+}
+
+.landing-calendar__text h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+  margin: 0.5rem 0 1rem;
+}
+
+.landing-calendar__text > p {
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.landing-calendar__mockup {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mini calendario mockup glassmorphism */
+.landing-cal-mock {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.landing-cal-mock__header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-glass-border);
+  margin-bottom: 0.25rem;
+}
+
+.landing-cal-mock__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.landing-cal-mock__day {
+  min-height: 3.5rem;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.landing-cal-mock__day > span {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  align-self: flex-end;
+}
+
+/* Mini tarjeta de tarea dentro del mockup */
+.landing-cal-mock__task {
+  font-size: 0.55rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  border-left: 2px solid;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.landing-cal-mock__task--gris  { border-color: var(--color-text-muted); }
+.landing-cal-mock__task--cyan  { border-color: #38bdf8; }
+.landing-cal-mock__task--verde { border-color: #22c55e; }
+
+@media (max-width: 800px) {
+  .landing-calendar {
+    flex-direction: column;
+    padding: 3rem 1.5rem;
+  }
+}
+
+/* Footer legal links */
+.landing-footer__legal {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.landing-footer__legal a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: color var(--transition);
+}
+
+.landing-footer__legal a:hover {
+  color: var(--color-accent);
+}
+
+.landing-footer__sep {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  font-size: 0.75rem;
+}
+
+
+/* ===================================================================
+   === PÁGINAS LEGALES ===
+   =================================================================== */
+
+.legal-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+}
+
+.legal-breadcrumb {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.legal-breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.legal-breadcrumb a:hover {
+  color: var(--color-accent);
+}
+
+.legal-breadcrumb__sep {
+  margin: 0 0.35rem;
+  opacity: 0.5;
+}
+
+.legal-page__titulo {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.legal-page__actualizacion {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+/* Cada sección legal es una card glassmorphism sutil */
+.legal-section {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.legal-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+}
+
+.legal-section h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 1rem 0 0.5rem;
+}
+
+.legal-section p {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  opacity: 0.9;
+}
+
+.legal-section ul {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-section li {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.7;
+  opacity: 0.9;
+  margin-bottom: 0.35rem;
+}
+
+.legal-section a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.legal-section a:hover {
+  text-decoration: underline;
+}
+
+.legal-section code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+/* Tabla dentro de las páginas legales */
+.legal-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.75rem 0;
+}
+
+.legal-tabla th,
+.legal-tabla td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--color-glass-border);
+  vertical-align: top;
+}
+
+.legal-tabla th {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.legal-tabla td {
+  color: var(--color-text);
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .legal-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .legal-page__titulo {
+    font-size: 1.5rem;
+  }
+
+  .legal-section {
+    padding: 1.25rem;
+  }
+
+  .legal-tabla {
+    font-size: 0.8rem;
+  }
+
+  .legal-tabla th,
+  .legal-tabla td {
+    padding: 0.5rem;
   }
 }

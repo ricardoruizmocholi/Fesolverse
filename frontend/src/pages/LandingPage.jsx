@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import SolarSystem from '../components/SolarSystem'
 
 // RUTA_DEMO_HERO
@@ -93,6 +94,8 @@ function IconoCohete() {
 // Recibe: nada.
 // Devuelve: el conjunto de secciones de la landing.
 function LandingPage() {
+  const { user } = useAuth()
+
   // Scroll reveal simple: las secciones marcadas con "landing-reveal"
   // empiezan invisibles y desplazadas; en cuanto entran en el viewport se
   // les añade "landing-reveal--visible", que activa la transición CSS de
@@ -273,7 +276,92 @@ function LandingPage() {
         </p>
       </section>
 
-      {/* SECCIÓN 5: CTA FINAL */}
+      {/* SECCIÓN 6: CALENDARIO. Layout 50/50 con texto a la izquierda y un
+          mockup estático de calendario mensual a la derecha. Los datos del
+          mockup son fijos (no conectados al backend) para mostrar cómo se
+          ven las tareas distribuidas en un mes. */}
+      <section className="landing-calendar">
+        <div className="landing-calendar__text landing-reveal">
+          <p className="landing-eyebrow">Planificación inteligente</p>
+          <h2>Tu plan de acción, en un calendario</h2>
+          <p>
+            Fesolverse organiza automáticamente tus tareas con fechas límite
+            inteligentes. Visualiza tu progreso semana a semana o mes a mes.
+          </p>
+
+          <ul className="landing-feature-list">
+            <li>Fechas límite generadas por IA al crear la ruta</li>
+            <li>Vista mensual y semanal tipo sprint</li>
+            <li>Drag &amp; drop para reorganizar tareas</li>
+            <li>Exporta tu calendario a Google Calendar o .ics</li>
+          </ul>
+
+          <Link
+            to={user ? '/calendario' : '/register'}
+            className="btn-primary landing-btn-lg"
+          >
+            Ver mi calendario →
+          </Link>
+        </div>
+
+        {/* Mockup estático: mini-calendario mensual glassmorphism */}
+        <div className="landing-calendar__mockup landing-reveal" aria-hidden="true">
+          <div className="landing-cal-mock">
+            <div className="landing-cal-mock__header">
+              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+
+            <div className="landing-cal-mock__grid">
+              {/* Fila 1: días 9-15 */}
+              <div className="landing-cal-mock__day"><span>9</span></div>
+              <div className="landing-cal-mock__day"><span>10</span></div>
+              <div className="landing-cal-mock__day">
+                <span>11</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--cyan">Configurar entorno</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>12</span></div>
+              <div className="landing-cal-mock__day"><span>13</span></div>
+              <div className="landing-cal-mock__day">
+                <span>14</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--gris">React hooks</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>15</span></div>
+
+              {/* Fila 2: días 16-22 */}
+              <div className="landing-cal-mock__day"><span>16</span></div>
+              <div className="landing-cal-mock__day"><span>17</span></div>
+              <div className="landing-cal-mock__day">
+                <span>18</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--gris">Portfolio</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>19</span></div>
+              <div className="landing-cal-mock__day">
+                <span>20</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--cyan">API REST</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>21</span></div>
+              <div className="landing-cal-mock__day"><span>22</span></div>
+
+              {/* Fila 3: días 23-29 */}
+              <div className="landing-cal-mock__day"><span>23</span></div>
+              <div className="landing-cal-mock__day">
+                <span>24</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--verde">Testing</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>25</span></div>
+              <div className="landing-cal-mock__day"><span>26</span></div>
+              <div className="landing-cal-mock__day">
+                <span>27</span>
+                <div className="landing-cal-mock__task landing-cal-mock__task--verde">Deploy</div>
+              </div>
+              <div className="landing-cal-mock__day"><span>28</span></div>
+              <div className="landing-cal-mock__day"><span>29</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN 7: CTA FINAL */}
       <section className="landing-cta landing-reveal">
         <h2>¿Listo para despegar?</h2>
         <p>Únete gratis. Las primeras 2 rutas son gratuitas.</p>
@@ -289,10 +377,19 @@ function LandingPage() {
           <Link to="/">Inicio</Link>
           <Link to="/login">Iniciar sesión</Link>
           <Link to="/register">Registrarse</Link>
-          <Link to="/admin">Admin</Link>
         </nav>
 
-        <p className="landing-footer__copy">© 2026 Fesolverse. Todos los derechos reservados.</p>
+        <nav className="landing-footer__legal">
+          <Link to="/terminos">Términos de uso</Link>
+          <span className="landing-footer__sep">|</span>
+          <Link to="/privacidad">Política de privacidad</Link>
+          <span className="landing-footer__sep">|</span>
+          <Link to="/cookies">Política de cookies</Link>
+        </nav>
+
+        <p className="landing-footer__copy">
+          © 2026 Fesolverse. Todos los derechos reservados. Fesolverse es un proyecto de desarrollo web.
+        </p>
       </footer>
     </div>
   )

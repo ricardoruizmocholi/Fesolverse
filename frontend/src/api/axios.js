@@ -5,7 +5,7 @@ import axios from 'axios'
 // automáticamente el token Sanctum (guardado en localStorage) a cada
 // petición, para no repetir esta configuración en cada componente.
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'https://fesolverse.ricardorm.es/api',
   headers: {
     Accept: 'application/json',
   },

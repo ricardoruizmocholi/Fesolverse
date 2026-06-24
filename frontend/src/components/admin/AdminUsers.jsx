@@ -132,6 +132,27 @@ function AdminUsers() {
     }
   }
 
+  // cambiarPlan
+  // Qué hace: alterna el plan del usuario entre 'free' y 'pro' (POST
+  // /admin/users/{id}/change-plan). Actualiza la lista local para reflejar
+  // el cambio sin recargar.
+  const cambiarPlan = async (usuario) => {
+    const nuevoPlan = usuario.plan === 'free' ? 'pro' : 'free'
+    setError('')
+    setAccionando(usuario.id)
+
+    try {
+      await api.post(`/admin/users/${usuario.id}/change-plan`, { plan: nuevoPlan })
+      setUsuarios((previos) =>
+        previos.map((u) => (u.id === usuario.id ? { ...u, plan: nuevoPlan } : u))
+      )
+    } catch (err) {
+      setError(err.response?.data?.message || 'No se ha podido cambiar el plan.')
+    } finally {
+      setAccionando(null)
+    }
+  }
+
   return (
     <div className="admin-usuarios">
       <form className="admin-buscador" onSubmit={handleBuscar}>
@@ -177,29 +198,47 @@ function AdminUsers() {
                     <td>{usuario.tokens_usados}</td>
                     <td>{new Date(usuario.created_at).toLocaleDateString()}</td>
                     <td>{usuario.routes_count}</td>
-                    <td>
-                      {/* El admin no puede bloquearse a sí mismo, ni se puede
-                          bloquear a un usuario sin IP de registro. */}
-                      {esUnoMismo || !usuario.ip_registro ? (
+                    <td className="admin-tabla__acciones">
+                      {/* El admin no puede actuar sobre sí mismo. */}
+                      {esUnoMismo ? (
                         <span className="admin-tabla__sin-accion">—</span>
-                      ) : ipBloqueada ? (
-                        <button
-                          type="button"
-                          className="admin-tabla__accion--desbloquear"
-                          onClick={() => desbloquear(usuario)}
-                          disabled={accionando === usuario.id}
-                        >
-                          Desbloquear IP
-                        </button>
                       ) : (
-                        <button
-                          type="button"
-                          className="admin-tabla__accion--bloquear"
-                          onClick={() => bloquear(usuario)}
-                          disabled={accionando === usuario.id}
-                        >
-                          Bloquear IP
-                        </button>
+                        <>
+                          {/* Botón cambio de plan: free→pro (naranja) / pro→free (gris) */}
+                          <button
+                            type="button"
+                            className={usuario.plan === 'free'
+                              ? 'admin-tabla__accion--plan-pro'
+                              : 'admin-tabla__accion--plan-free'}
+                            onClick={() => cambiarPlan(usuario)}
+                            disabled={accionando === usuario.id}
+                          >
+                            {usuario.plan === 'free' ? '→ Pro' : '→ Free'}
+                          </button>
+
+                          {/* Botón bloquear/desbloquear IP */}
+                          {usuario.ip_registro && (
+                            ipBloqueada ? (
+                              <button
+                                type="button"
+                                className="admin-tabla__accion--desbloquear"
+                                onClick={() => desbloquear(usuario)}
+                                disabled={accionando === usuario.id}
+                              >
+                                Desbloquear IP
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="admin-tabla__accion--bloquear"
+                                onClick={() => bloquear(usuario)}
+                                disabled={accionando === usuario.id}
+                              >
+                                Bloquear IP
+                              </button>
+                            )
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>

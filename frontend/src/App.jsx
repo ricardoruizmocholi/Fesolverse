@@ -12,6 +12,9 @@ import CalendarPage from './pages/CalendarPage'
 import ProfilePage from './pages/ProfilePage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import TermsPage from './pages/legal/TermsPage'
+import PrivacyPage from './pages/legal/PrivacyPage'
+import CookiesPage from './pages/legal/CookiesPage'
 import { useAuth } from './context/AuthContext'
 import useTheme from './hooks/useTheme'
 
@@ -27,7 +30,7 @@ import useTheme from './hooks/useTheme'
 // Recibe: nada (usa el contexto de autenticación para el menú).
 // Devuelve: la cabecera, la navegación y el contenido de la ruta activa.
 function App() {
-  const { user, logout } = useAuth()
+  const { user, loading, logout } = useAuth()
 
   // useTheme() se llama aquí para que la clase "theme-light" (si el tema
   // guardado en localStorage es "light") se aplique a <html> nada más
@@ -42,8 +45,12 @@ function App() {
         <Header />
 
         <nav className="navbar__links">
-          <Link className="navbar__link" to="/">Inicio</Link>
-          {' | '}
+          {!user && (
+            <>
+              <Link className="navbar__link" to="/">Inicio</Link>
+              {' | '}
+            </>
+          )}
           {user ? (
             <>
               <Link className="navbar__link" to="/dashboard">Dashboard</Link>
@@ -74,11 +81,14 @@ function App() {
         <Routes>
           {/* Si ya hay sesión iniciada, "/" redirige al Dashboard; si no,
               muestra la landing pública. */}
-          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+          <Route path="/" element={loading ? null : user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/terminos" element={<TermsPage />} />
+          <Route path="/privacidad" element={<PrivacyPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
           <Route
             path="/dashboard"
             element={

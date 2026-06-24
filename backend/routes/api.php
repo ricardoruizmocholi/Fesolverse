@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users/{user}/block', [AdminController::class, 'blockUser']);
         Route::post('/users/{user}/unblock', [AdminController::class, 'unblockUser']);
+        Route::post('/users/{user}/change-plan', [AdminController::class, 'changePlan']);
         Route::get('/blocked-ips', [AdminController::class, 'blockedIps']);
         Route::delete('/blocked-ips/{blockedIp}', [AdminController::class, 'unblockIp']);
         // GET ?archivadas=true devuelve solo rutas archivadas con "dias_restantes".

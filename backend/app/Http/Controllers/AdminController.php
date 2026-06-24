@@ -8,6 +8,7 @@ use App\Models\Route;
 use App\Models\User;
 use App\Services\ArchivoRutasService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Controlador del panel de administración (Fase 6).
@@ -412,6 +413,42 @@ class AdminController extends Controller
                 ],
             ],
             'message' => 'Pagos obtenidos correctamente.',
+        ]);
+    }
+
+    /**
+     * Cambia el plan de un usuario (free ↔ pro).
+     *
+     * Qué hace: actualiza el campo "plan" del usuario indicado. Solo acepta
+     * los valores 'free' y 'pro'.
+     *
+     * Por qué existe: permite a un administrador cambiar manualmente el plan
+     * de cualquier usuario sin pasar por el flujo de pago de Stripe (por
+     * ejemplo, para conceder plan Pro de cortesía o revertir un upgrade).
+     *
+     * Recibe: Request con "plan" ('free' o 'pro') y el usuario (route model binding).
+     * Devuelve: JSON con el usuario actualizado (200) o errores de validación (422).
+     */
+    public function changePlan(Request $request, User $user)
+    {
+        $validator = Validator::make($request->all(), [
+            'plan' => ['required', 'in:free,pro'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'data' => $validator->errors(),
+                'message' => 'Los datos enviados no son válidos.',
+            ], 422);
+        }
+
+        $user->update(['plan' => $request->input('plan')]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['user' => $user],
+            'message' => "Plan del usuario actualizado a {$user->plan}.",
         ]);
     }
 }
