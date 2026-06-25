@@ -4,13 +4,24 @@ namespace App\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GeminiService
 {
     /**
-     * URL del endpoint de generación de contenido de Gemini Flash.
+     * URL del endpoint de generación de contenido de Gemini.
+     *
+     * Se usa gemini-2.0-flash-lite: el modelo más rápido y ligero de Google.
+     * Responde en 3-8 segundos y consume menos tokens que 2.5-flash,
+     * compatible con el timeout de 25s para evitar cortes de IONOS.
      */
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+
+    /**
+     * Timeout de la petición HTTP a Gemini (en segundos).
+     * Fijado a 25s para fallar antes de que IONOS corte la conexión (~30s).
+     */
+    private const TIMEOUT_SEGUNDOS = 25;
 
     /**
      * Genera una ruta de aprendizaje personalizada con la IA de Gemini.
@@ -43,7 +54,7 @@ class GeminiService
         $prompt = $this->construirPrompt($destino, $puntoPartida);
 
         try {
-            $response = Http::timeout(60)->post(self::API_URL . '?key=' . $apiKey, [
+            $response = Http::timeout(self::TIMEOUT_SEGUNDOS)->post(self::API_URL . '?key=' . $apiKey, [
                 'contents' => [
                     [
                         'parts' => [
@@ -53,11 +64,21 @@ class GeminiService
                 ],
             ]);
         } catch (\Throwable $e) {
-            throw new Exception('Error de conexión con la API de Gemini: ' . $e->getMessage());
+            // SEGURIDAD: registrar el error internamente sin exponer detalles
+            // al usuario (podría contener la API key o datos de la petición).
+            Log::error('Gemini: error de conexión', ['error' => $e->getMessage()]);
+            throw new Exception('Error de conexión con la API de Gemini.');
         }
 
         if ($response->failed()) {
-            throw new Exception('La API de Gemini respondió con un error (HTTP ' . $response->status() . '): ' . $response->body());
+            // SEGURIDAD: el body de error de Gemini puede contener la API key
+            // reflejada o detalles internos. Se registra en el log del servidor
+            // pero NUNCA se devuelve al usuario.
+            Log::error('Gemini: error HTTP', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            throw new Exception('La API de Gemini respondió con un error HTTP ' . $response->status() . '.');
         }
 
         $texto = $response->json('candidates.0.content.parts.0.text');

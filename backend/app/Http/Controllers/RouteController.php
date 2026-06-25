@@ -6,6 +6,7 @@ use App\Models\Route;
 use App\Services\GeminiService;
 use App\Services\PlanificadorFechasService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -47,10 +48,13 @@ class RouteController extends Controller
         // solo las activas (archivada = false).
         $soloArchivadas = $request->boolean('archivadas', false);
 
+        // Excluir rutas en estado 'error' (nunca deberían mostrarse al usuario;
+        // son restos de generaciones fallidas del flujo antiguo).
         $rutas = $request->user()
             ->routes()
             ->with('steps.tasks')
             ->where('archivada', $soloArchivadas)
+            ->where('estado', '!=', 'error')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -66,29 +70,28 @@ class RouteController extends Controller
     /**
      * Genera una nueva ruta de aprendizaje con IA.
      *
-     * Qué hace: valida el destino y el punto de partida indicados por el
-     * usuario, comprueba que no haya superado el límite de rutas de su
-     * plan, crea la ruta en estado "generando", llama a GeminiService para
-     * obtener la ruta generada y, según el resultado, actualiza la ruta a
-     * "completada" (con sus pasos y, para cada paso, sus tareas iniciales
-     * en estado "pendiente") o a "error".
+     * Flujo (Gemini primero, BD después):
+     *   1. Validar inputs.
+     *   2. Comprobar límite del plan free (excluyendo rutas con error o archivadas).
+     *   3. Llamar a Gemini ANTES de tocar la BD.
+     *   4. Si Gemini falla → devolver 502 sin crear ningún registro.
+     *   5. Solo si Gemini responde correctamente → crear ruta + steps + tasks.
      *
-     * Por qué existe: es el punto de entrada del "generador de rutas con
-     * IA" desde el frontend.
+     * Este orden evita que los errores de Gemini (timeout, 429, 503, etc.)
+     * consuman el cupo de rutas del plan free del usuario.
      *
-     * Recibe: Request con "destino" y "punto_partida".
-     * Devuelve: JSON con la ruta generada y sus pasos (201), errores de
-     * validación (422), límite del plan alcanzado (403) o error al generar
-     * la ruta con la IA (502).
+     * Recibe: Request con "destino", "punto_partida" y "fecha_inicio" (opcional).
+     * Devuelve: JSON con la ruta generada (201), errores de validación (422),
+     * límite alcanzado (403) o error de Gemini (502).
      */
     public function generate(Request $request, GeminiService $geminiService, PlanificadorFechasService $planificador)
     {
         $hoy = now()->toDateString();
 
         $validator = Validator::make($request->all(), [
-            'destino'      => ['required', 'string'],
-            'punto_partida' => ['required', 'string'],
-            'fecha_inicio' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:' . $hoy],
+            'destino'       => ['required', 'string', 'max:1000'],
+            'punto_partida' => ['required', 'string', 'max:2000'],
+            'fecha_inicio'  => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:' . $hoy],
         ]);
 
         if ($validator->fails()) {
@@ -101,7 +104,15 @@ class RouteController extends Controller
 
         $usuario = $request->user();
 
-        if ($usuario->plan === 'free' && $usuario->routes()->count() >= self::LIMITE_RUTAS_PLAN_FREE) {
+        // Conteo del plan free: solo cuentan rutas que NO están en error
+        // y NO están archivadas. Las rutas fallidas o archivadas no deben
+        // penalizar al usuario.
+        $rutasActivas = $usuario->routes()
+            ->where('estado', '!=', 'error')
+            ->where('archivada', false)
+            ->count();
+
+        if ($usuario->plan === 'free' && $rutasActivas >= self::LIMITE_RUTAS_PLAN_FREE) {
             return response()->json([
                 'success' => false,
                 'data' => [],
@@ -111,82 +122,76 @@ class RouteController extends Controller
 
         $destino      = $request->input('destino');
         $puntoPartida = $request->input('punto_partida');
-        // Si el frontend no envía fecha, se usa hoy como punto de partida.
         $fechaInicio  = $request->input('fecha_inicio', $hoy);
 
-        // Creamos la ruta en estado "generando" con valores provisionales
-        // que se sobrescribirán cuando la IA devuelva el resultado.
-        $ruta = Route::create([
-            'user_id'                => $usuario->id,
-            'titulo'                 => 'Generando ruta...',
-            'destino'                => $destino,
-            'punto_partida'          => $puntoPartida,
-            'destino_espacial'       => 'La Luna',
-            'dificultad'             => 'moderado',
-            'tiempo_estimado_semanas' => 0,
-            'estado'                 => 'generando',
-            'fecha_inicio'           => $fechaInicio,
-        ]);
-
+        // --- PASO 1: Llamar a Gemini ANTES de crear nada en la BD ---
+        // Si falla (timeout, error HTTP, respuesta inválida), devolvemos
+        // error 502 sin haber escrito en la BD → no consume cupo.
         try {
             $resultado = $geminiService->generarRuta($destino, $puntoPartida);
-
-            $ruta->update([
-                'titulo'                 => $resultado['titulo'],
-                'destino_espacial'       => $resultado['destino_espacial'],
-                'dificultad'             => $resultado['dificultad'],
-                'tiempo_estimado_semanas' => $resultado['tiempo_estimado_semanas'],
-                'estado'                 => 'completada',
-            ]);
-
-            // Calcular fechas_limite para todas las tareas ANTES de guardar en BD.
-            // El planificador añade 'fecha_limite' a cada tarea de forma determinística
-            // usando la fecha_inicio de la ruta y tiempo_estimado_semanas de cada step.
-            $pasos = $planificador->planificarFechas($ruta, $resultado['steps']);
-
-            $stepsCreados = $ruta->steps()->createMany(array_map(function (array $paso) {
-                return [
-                    'orden'                  => $paso['orden'],
-                    'titulo'                 => $paso['titulo'],
-                    'descripcion'            => $paso['descripcion'],
-                    'proyecto_aprendizaje'   => $paso['proyecto_aprendizaje'],
-                    'tiempo_estimado_semanas' => $paso['tiempo_estimado_semanas'],
-                ];
-            }, $pasos));
-
-            // Por cada step creamos sus tareas con la fecha_limite ya calculada.
-            // Si un step no trae tareas (o no es un array), se omite sin errores.
-            foreach ($stepsCreados as $indice => $step) {
-                $tareas = $pasos[$indice]['tareas'] ?? null;
-
-                if (!is_array($tareas)) {
-                    continue;
-                }
-
-                $tareasValidas = array_values(array_filter(
-                    $tareas,
-                    fn (array $tarea) => !empty($tarea['titulo'])
-                ));
-
-                $step->tasks()->createMany(array_map(function (array $tarea, int $orden) {
-                    return [
-                        'titulo'       => $tarea['titulo'],
-                        'descripcion'  => $tarea['descripcion'] ?? null,
-                        'estado'       => 'pendiente',
-                        'orden'        => $orden,
-                        // fecha_limite calculada por PlanificadorFechasService.
-                        'fecha_limite' => $tarea['fecha_limite'] ?? null,
-                    ];
-                }, $tareasValidas, array_keys($tareasValidas)));
-            }
         } catch (\Throwable $e) {
-            $ruta->update(['estado' => 'error']);
+            // SEGURIDAD: registrar el error real en el log del servidor pero
+            // devolver un mensaje genérico al usuario (sin detalles internos).
+            Log::error('Error generando ruta con Gemini', [
+                'user_id' => $usuario->id,
+                'error'   => $e->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
                 'data' => [],
-                'message' => 'No se ha podido generar la ruta: ' . $e->getMessage(),
+                'message' => 'No se ha podido generar la ruta. Inténtalo de nuevo en unos minutos.',
             ], 502);
+        }
+
+        // --- PASO 2: Gemini respondió correctamente → crear todo en BD ---
+        $ruta = Route::create([
+            'user_id'                => $usuario->id,
+            'titulo'                 => $resultado['titulo'],
+            'destino'                => $destino,
+            'punto_partida'          => $puntoPartida,
+            'destino_espacial'       => $resultado['destino_espacial'],
+            'dificultad'             => $resultado['dificultad'],
+            'tiempo_estimado_semanas' => $resultado['tiempo_estimado_semanas'],
+            'estado'                 => 'completada',
+            'fecha_inicio'           => $fechaInicio,
+        ]);
+
+        // Calcular fechas_limite para todas las tareas de forma determinística
+        // usando la fecha_inicio de la ruta y tiempo_estimado_semanas de cada step.
+        $pasos = $planificador->planificarFechas($ruta, $resultado['steps']);
+
+        $stepsCreados = $ruta->steps()->createMany(array_map(function (array $paso) {
+            return [
+                'orden'                  => $paso['orden'],
+                'titulo'                 => $paso['titulo'],
+                'descripcion'            => $paso['descripcion'],
+                'proyecto_aprendizaje'   => $paso['proyecto_aprendizaje'],
+                'tiempo_estimado_semanas' => $paso['tiempo_estimado_semanas'],
+            ];
+        }, $pasos));
+
+        foreach ($stepsCreados as $indice => $step) {
+            $tareas = $pasos[$indice]['tareas'] ?? null;
+
+            if (!is_array($tareas)) {
+                continue;
+            }
+
+            $tareasValidas = array_values(array_filter(
+                $tareas,
+                fn (array $tarea) => !empty($tarea['titulo'])
+            ));
+
+            $step->tasks()->createMany(array_map(function (array $tarea, int $orden) {
+                return [
+                    'titulo'       => $tarea['titulo'],
+                    'descripcion'  => $tarea['descripcion'] ?? null,
+                    'estado'       => 'pendiente',
+                    'orden'        => $orden,
+                    'fecha_limite' => $tarea['fecha_limite'] ?? null,
+                ];
+            }, $tareasValidas, array_keys($tareasValidas)));
         }
 
         return response()->json([
