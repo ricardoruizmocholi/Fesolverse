@@ -30,7 +30,7 @@ const COLUMNAS = [
 // porcentaje de progreso).
 // Devuelve: las tres columnas del tablero y, si hay una tarea seleccionada,
 // el TaskModal con su detalle.
-function TrelloBoard({ step, onTasksChange }) {
+function TrelloBoard({ step, onTasksChange, route, user, onMensajesUsadosChange }) {
   const [tasks, setTasks] = useState(step.tasks || [])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -289,6 +289,9 @@ function TrelloBoard({ step, onTasksChange }) {
           onClose={() => setTareaSeleccionada(null)}
           onSave={handleTaskSaved}
           onDelete={handleTaskDeleted}
+          route={route}
+          user={user}
+          onMensajesUsadosChange={onMensajesUsadosChange}
         />
       )}
     </div>

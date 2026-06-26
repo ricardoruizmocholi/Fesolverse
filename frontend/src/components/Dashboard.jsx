@@ -410,7 +410,19 @@ function Dashboard() {
               <section className="tablero-progreso">
                 <h3>Progreso: {stepTablero.titulo}</h3>
                 <StepProgress tasks={tasksTablero} />
-                <TrelloBoard step={stepTablero} onTasksChange={setTasksTablero} />
+                <TrelloBoard
+                  step={stepTablero}
+                  onTasksChange={setTasksTablero}
+                  route={rutaSeleccionada}
+                  user={user}
+                  onMensajesUsadosChange={(nuevoContador) => {
+                    setRutas((prev) => prev.map((r) =>
+                      r.id === rutaSeleccionada?.id
+                        ? { ...r, chatbot_mensajes_usados: nuevoContador }
+                        : r
+                    ))
+                  }}
+                />
               </section>
             )}
 

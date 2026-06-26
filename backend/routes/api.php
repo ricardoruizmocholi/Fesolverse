@@ -7,6 +7,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RouteController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\TaskController;
 
 Route::get('/status', function () {
@@ -63,6 +64,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::patch('/tasks/{task}/move', [TaskController::class, 'moveColumn']);
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+
+    // --- Chatbot de asistencia por tarea ---
+    Route::post('/tasks/{task}/chat', [ChatbotController::class, 'message']);
 
     // --- Calendario centralizado (Fase 10) ---
     // Todas las tasks del usuario de todas sus rutas, con filtro opcional

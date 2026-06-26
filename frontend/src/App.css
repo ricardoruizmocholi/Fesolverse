@@ -948,6 +948,171 @@ body.modo-mapa .star-field {
 }
 
 /* ===================================================================
+   === BOTON ASISTENTE EN TASK MODAL ===
+   =================================================================== */
+
+.task-modal__btn-asistente {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+/* ===================================================================
+   === CHATBOT PANEL ===
+   =================================================================== */
+
+.chatbot-panel {
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-glass-border);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chatbot-panel__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-panel__cabecera h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.chatbot-panel__cerrar {
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.chatbot-panel__cerrar:hover {
+  opacity: 1;
+}
+
+.chatbot-panel__contador {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 0.25rem 0;
+}
+
+.chatbot-panel__mensajes {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md, 8px);
+}
+
+.chatbot-panel__vacio {
+  color: #64748b;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 1rem;
+  margin: 0;
+}
+
+.chatbot-panel__mensaje {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  max-width: 85%;
+}
+
+.chatbot-panel__mensaje p {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.chatbot-panel__autor {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chatbot-panel__mensaje--usuario {
+  background: rgba(59, 130, 246, 0.2);
+  align-self: flex-end;
+  color: #bfdbfe;
+}
+
+.chatbot-panel__mensaje--asistente {
+  background: rgba(34, 197, 94, 0.15);
+  align-self: flex-start;
+  color: #bbf7d0;
+}
+
+.chatbot-panel__escribiendo {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.chatbot-panel__error {
+  color: var(--color-error, #ef4444);
+  font-size: 0.82rem;
+  margin: 0;
+  padding: 0 0.25rem;
+}
+
+.chatbot-panel__input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.chatbot-panel__input textarea {
+  flex: 1;
+  resize: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.chatbot-panel__input textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.chatbot-panel__input button {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.chatbot-panel__limite {
+  text-align: center;
+  padding: 0.75rem;
+  background: rgba(249, 115, 22, 0.1);
+  border-radius: 8px;
+}
+
+.chatbot-panel__limite p {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #fdba74;
+}
+
+.chatbot-panel__limite a {
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+/* ===================================================================
    === BARRA DE PROGRESO ===
    =================================================================== */
 

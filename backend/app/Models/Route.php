@@ -28,6 +28,7 @@ class Route extends Model
         'fecha_inicio',
         'archivada',
         'archivada_en',
+        'chatbot_mensajes_usados',
     ];
 
     /**

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import api from '../api/axios'
+import ChatbotPanel from './ChatbotPanel'
 
 // Opciones del campo "estado" del formulario, con el mismo texto que las
 // columnas del TrelloBoard para que el usuario las reconozca.
@@ -21,7 +22,7 @@ const ESTADOS = [
 // actualizada) y onDelete (avisa al TrelloBoard de que la tarea se ha
 // eliminado, con su id).
 // Devuelve: el modal con el formulario de edición.
-function TaskModal({ task, onClose, onSave, onDelete }) {
+function TaskModal({ task, onClose, onSave, onDelete, route, user, onMensajesUsadosChange }) {
   const [titulo, setTitulo] = useState(task.titulo)
   const [descripcion, setDescripcion] = useState(task.descripcion || '')
   const [estado, setEstado] = useState(task.estado)
@@ -29,6 +30,11 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
   const [notas, setNotas] = useState(task.notas || '')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+  const [chatbotAbierto, setChatbotAbierto] = useState(false)
+
+  const esFree = user?.plan === 'free'
+  const mensajesUsados = route?.chatbot_mensajes_usados ?? 0
+  const puedeUsarChatbot = !esFree || mensajesUsados < 5
 
   // handleGuardar
   // Qué hace: envía los campos editados al backend (PUT /tasks/{task}) y,
@@ -148,6 +154,26 @@ function TaskModal({ task, onClose, onSave, onDelete }) {
             Cerrar
           </button>
         </div>
+
+        {puedeUsarChatbot && !chatbotAbierto && (
+          <button
+            type="button"
+            className="btn-secondary task-modal__btn-asistente"
+            onClick={() => setChatbotAbierto(true)}
+          >
+            Preguntar al asistente
+          </button>
+        )}
+
+        {chatbotAbierto && (
+          <ChatbotPanel
+            task={task}
+            route={route}
+            user={user}
+            onClose={() => setChatbotAbierto(false)}
+            onMensajesUsadosChange={onMensajesUsadosChange}
+          />
+        )}
       </div>
     </div>
   )
