@@ -11,11 +11,11 @@ class GeminiService
     /**
      * URL del endpoint de generación de contenido de Gemini.
      *
-     * Se usa gemini-2.0-flash-lite: el modelo más rápido y ligero de Google.
+     * Se usa gemini-2.5-flash: el modelo más rápido y ligero de Google.
      * Responde en 3-8 segundos y consume menos tokens que 2.5-flash,
      * compatible con el timeout de 25s para evitar cortes de IONOS.
      */
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
     /**
      * Timeout de la petición HTTP a Gemini (en segundos).

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ChatbotController extends Controller
 {
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     private const TIMEOUT_SEGUNDOS = 125;
     private const LIMITE_MENSAJES_FREE = 5;
 
