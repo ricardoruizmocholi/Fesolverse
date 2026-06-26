@@ -158,7 +158,7 @@ function SincronizarTamano({ visible }) {
 // Devuelve: el contenedor del mapa, con sus marcadores, popups, las rutas
 // por carretera y el botón para volver al sistema solar.
 function MapView({ route, onBack, onStepSelect, visible }) {
-  const { lat, lon } = useUserLocation()
+  const { lat, lon, city: ciudadOrigen } = useUserLocation()
 
   const origen = { lat, lon }
   const destino = getDestinoCiudad(route)
@@ -354,12 +354,20 @@ function MapView({ route, onBack, onStepSelect, visible }) {
 
         {/* Marcador de origen: ubicación detectada del usuario */}
         <CircleMarker center={[origen.lat, origen.lon]} radius={10} color="#f97316" fillColor="#f97316" fillOpacity={0.9}>
-          <Popup>Tu punto de partida</Popup>
+          <Popup>
+            <strong>Punto de partida</strong>
+            {ciudadOrigen && <><br />{ciudadOrigen}</>}
+            {route?.punto_partida && <><br />{route.punto_partida}</>}
+          </Popup>
         </CircleMarker>
 
         {/* Marcador de destino: ciudad simbólica del destino espacial de la ruta */}
         <CircleMarker center={[destino.lat, destino.lon]} radius={12} color="#22c55e" fillColor="#22c55e" fillOpacity={0.9}>
-          <Popup>{destino.ciudad}</Popup>
+          <Popup>
+            <strong>Destino: {destino.ciudad}</strong>
+            {route?.destino && <><br />{route.destino}</>}
+            {route?.titulo && <><br />{route.titulo} — {route.tiempo_estimado_semanas} semanas</>}
+          </Popup>
         </CircleMarker>
 
         {/* Un marcador por cada step de la ruta. Al hacer click muestra su

@@ -969,7 +969,7 @@ body.modo-mapa .star-field {
 
 .step-progress__relleno {
   height: 100%;
-  background: linear-gradient(to right, var(--color-accent), var(--color-cyan));
+  background: linear-gradient( var(--color-cyan));
   border-radius: 9999px;
   transition: width 0.3s ease;
 }
@@ -2721,7 +2721,7 @@ html {
   color: var(--color-text);
   line-height: 1.35;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -343,16 +343,28 @@ function Cohete({ progreso, radioDestino }) {
 // Recibe: step (el step seleccionado) y onClose (función para cerrar el panel).
 // Devuelve: el panel de información.
 function StepInfoPanel({ step, onClose }) {
+  const esInicio = step._tipo === 'inicio'
+  const esMeta = step._tipo === 'meta'
+
   return (
     <aside className="info-panel">
       <button className="info-panel__cerrar" onClick={onClose} aria-label="Cerrar panel">
         ✕
       </button>
-      <p className="info-panel__numero">Paso {step.orden}</p>
+      <p className="info-panel__numero">
+        {esInicio ? 'Inicio' : esMeta ? 'Meta' : `Paso ${step.orden}`}
+      </p>
       <h4>{step.titulo}</h4>
       <p>{step.descripcion}</p>
-      <p><strong>Proyecto de aprendizaje:</strong> {step.proyecto_aprendizaje}</p>
-      <p><strong>Duración estimada:</strong> {step.tiempo_estimado_semanas} semanas</p>
+      {!esInicio && !esMeta && (
+        <>
+          <p><strong>Proyecto de aprendizaje:</strong> {step.proyecto_aprendizaje}</p>
+          <p><strong>Duración estimada:</strong> {step.tiempo_estimado_semanas} semanas</p>
+        </>
+      )}
+      {esMeta && step.info_adicional && (
+        <p><strong>Información:</strong> {step.info_adicional}</p>
+      )}
     </aside>
   )
 }
@@ -462,6 +474,13 @@ function SolarSystem({ route, onStepSelect }) {
                 color="#14b8a6"
                 etiqueta="Inicio"
                 texturaUrl={URL_TEXTURA_TIERRA}
+                onClick={() => {
+                  setStepSeleccionado({
+                    _tipo: 'inicio',
+                    titulo: 'Punto de partida',
+                    descripcion: route.punto_partida,
+                  })
+                }}
               />
 
               {steps.map((step, indice) => {
@@ -498,6 +517,14 @@ function SolarSystem({ route, onStepSelect }) {
                 anillos={destino.anillos}
                 etiqueta={route.destino_espacial}
                 texturaUrl={destino.textura}
+                onClick={() => {
+                  setStepSeleccionado({
+                    _tipo: 'meta',
+                    titulo: route.titulo,
+                    descripcion: route.destino,
+                    info_adicional: `${route.destino_espacial} — ${route.dificultad} — ${route.tiempo_estimado_semanas} semanas`,
+                  })
+                }}
               />
 
               {route.estado === 'completada' && steps.length > 0 && (
